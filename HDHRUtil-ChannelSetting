@@ -236,12 +236,16 @@ if __name__ == '__main__':
             enabled = bool(hdhrChannel['Enabled'])
         if 'Favorite' in hdhrChannel:
             favorite = bool(hdhrChannel['Favorite'])
+        if 'GuideName' in hdhrChannel:
+            name = hdhrChannel['GuideName']
+        else:
+            name = 'Unknown'
         currentValue = 'disabled'
         if favorite:
             currentValue = 'favorite'
         elif enabled:
             currentValue = 'enabled'
-        print('Channel ' + channel + ' is currently set as ' + currentValue)
+        print('Channel ' + channel + ' (' + name + ') is currently set as ' + currentValue)
         if args.setValue is not None:
             newValue = None
             if args.setValue == 'favorite':
