@@ -65,7 +65,7 @@ def HDHRdiscover():
         r.raise_for_status()
         SDdiscover = r.json()
     except requests.exceptions.RequestException:
-        SDdiscover = []
+        SDdiscover = {}
 
     for device in SDdiscover:
         Legacy = False
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 
 
     # Get channel list from source hdhr
-    hdhrLineup = []
+    hdhrLineup = {}
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(srcHDHRip)).json()
     except requests.exceptions.RequestException:
@@ -262,7 +262,7 @@ if __name__ == '__main__':
         srchdhrChannelList[guidenumber] = hdhrChannel
 
     # Get channel list from destination hdhr
-    hdhrLineup = []
+    hdhrLineup = {}
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(dstHDHRip)).json()
     except requests.exceptions.RequestException:
