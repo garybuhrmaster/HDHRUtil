@@ -64,7 +64,7 @@ def HDHRdiscover():
         r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
         r.raise_for_status()
         SDdiscover = r.json()
-    except requests.exceptions.RequestException:
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
         SDdiscover = {}
 
     for device in SDdiscover:
@@ -114,7 +114,7 @@ def HDHRdiscover():
             r = requests.get(discoveredTuners[device], timeout=(.2, .2))
             r.raise_for_status()
             discoverResponse = r.json()
-        except requests.exceptions.RequestException:
+        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
             discoverResponse = {}
 
         Legacy = False
@@ -240,7 +240,7 @@ if __name__ == '__main__':
     hdhrLineup = {}
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(srcHDHRip)).json()
-    except requests.exceptions.RequestException:
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
         print('Unable to obtain lineup from {}'.format(srcHDHRip))
         sys.exit(1)
     srchdhrChannelList = {}
@@ -265,7 +265,7 @@ if __name__ == '__main__':
     hdhrLineup = {}
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(dstHDHRip)).json()
-    except requests.exceptions.RequestException:
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
         print('Unable to obtain lineup from {}'.format(srcHDHRip))
         sys.exit(1)
     dsthdhrChannelList = {}
