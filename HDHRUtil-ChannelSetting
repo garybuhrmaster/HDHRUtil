@@ -93,9 +93,9 @@ def HDHRdiscover():
     sock.settimeout(.2)
     for i in range(2):
         sock.sendto(discovery_udp_msg, ('<broadcast>', discovery_udp_port))
-        while(1):
+        while True:
             try:
-                (buf,addr)=sock.recvfrom(2048)
+                (buf, addr) = sock.recvfrom(2048)
             except socket.timeout:
                 break
             if addr is None:
@@ -132,7 +132,7 @@ def HDHRdiscover():
         discoverResponse['LocalIP'] = device
         eligibleTuners.append(discoverResponse)
 
-    return(eligibleTuners)
+    return eligibleTuners
 
 def channelNormalize(channel):
     m0 = re.match('^(\d+)$', channel)
@@ -209,7 +209,7 @@ if __name__ == '__main__':
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(HDHRip)).json()
     except requests.exceptions.RequestException:
-        print ('Unable to obtain lineup from {}'.format(HDHRip))
+        print('Unable to obtain lineup from {}'.format(HDHRip))
         sys.exit(1)
     hdhrChannelList = {}
     for hdhrChannel in hdhrLineup:
