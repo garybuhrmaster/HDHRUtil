@@ -1,0 +1,335 @@
+#!/usr/bin/env python3
+
+"""
+
+HDHRUtil-ChannelSettingDuplicate
+
+HDHRUtil-ChannelSettingDuplicate is a utility for configuring the
+channel selection on SiliconDust HDHR devices by duplicating the
+list from one HDHR to another.
+
+Copyright (c) 2017 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+This utility currently uses a reverse engineered
+interface to the HDHR, which, as it is not documented
+as a stable API, could change at any time.
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+
+"""
+
+
+import sys
+import requests
+import json
+import re
+import argparse
+import socket
+import natsort
+
+
+def HDHRdiscover():
+
+    #
+    # Try a few different ways to identify eligible HDHRs
+    #
+    #
+    # First, obtain list from my.hdhomerun.com (SD provided service)
+    #
+    # Second, try to get a list of IP addresses that appear to
+    # be tuners (via a hand constructed packet (we just collect
+    # the IP addresses, and then perform a discovery)
+    #
+
+    discoveredTuners = {}
+
+    try:
+        r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
+        r.raise_for_status()
+        SDdiscover = r.json()
+    except requests.exceptions.RequestException:
+        SDdiscover = []
+
+    for device in SDdiscover:
+        Legacy = False
+        DeviceID = None
+        DiscoverURL = None
+        LocalIP = None
+        if 'Legacy' in device:
+            Legacy = bool(device['Legacy'])
+        if 'DeviceID' in device:
+            DeviceID = device['DeviceID']
+        if 'DiscoverURL' in device:
+            DiscoverURL = device['DiscoverURL']
+        if 'LocalIP' in device:
+            LocalIP = device['LocalIP']
+
+        if (Legacy) or (DeviceID is None) or (DiscoverURL is None) or (LocalIP is None):
+            continue
+
+        discoveredTuners[LocalIP] = DiscoverURL
+
+    discovery_udp_port = 65001
+    # Hand constructed discovery message (device type = tuner, device id = wildcard)
+    discovery_udp_msg = bytearray.fromhex('00 02 00 0c 01 04 00 00 00 01 02 04 ff ff ff ff 4e 50 7f 35')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    sock.settimeout(.2)
+    for i in range(2):
+        sock.sendto(discovery_udp_msg, ('<broadcast>', discovery_udp_port))
+        while True:
+            try:
+                (buf, addr) = sock.recvfrom(2048)
+            except socket.timeout:
+                break
+            if addr is None:
+                continue
+            if buf is None:
+                continue
+
+            DiscoverURL = 'http://' + addr[0] + ':80/discover.json'
+            discoveredTuners[addr[0]] = DiscoverURL
+
+    eligibleTuners = []
+
+    for device in discoveredTuners:
+        try:
+            r = requests.get(discoveredTuners[device], timeout=(.2, .2))
+            r.raise_for_status()
+            discoverResponse = r.json()
+        except requests.exceptions.RequestException:
+            discoverResponse = {}
+
+        Legacy = False
+        DeviceID = None
+        LineupURL = None
+        if 'Legacy' in discoverResponse:
+            Legacy = bool(discoverResponse['Legacy'])
+        if 'DeviceID' in discoverResponse:
+            DeviceID = discoverResponse['DeviceID']
+        if 'LineupURL' in discoverResponse:
+            LineupURL = discoverResponse['LineupURL']
+
+        if (Legacy) or (DeviceID is None) or (LineupURL is None):
+            continue
+
+        discoverResponse['LocalIP'] = device
+        eligibleTuners.append(discoverResponse)
+
+    return eligibleTuners
+
+def channelNormalize(channel):
+    m0 = re.match('^(\d+)$', channel)
+    m1 = re.match('^(\d+)\.(\d+)$', channel)
+    m2 = re.match('^(\d+)_(\d+)$', channel)
+    m3 = re.match('^(\d+)-(\d+)$', channel)
+    if m0:
+        return '{0}'.format(int(m0.group(1)))
+    elif m1:
+        return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
+    elif m2:
+        return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
+    elif m3:
+        return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
+    raise TypeError('Invalid channel: {0}'.format(channel))
+
+def channelCheck(channel):
+    try:
+        return channelNormalize(channel)
+    except TypeError:
+        raise argparse.ArgumentTypeError('{} is not a valid channel'.format(channel))
+
+
+if __name__ == '__main__':
+
+    # Parse our args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--source-hdhr', '--src-hdhr', '--srchdhr',
+                        action='store', type=str, dest='srchdhr', required=True,
+                        help='the source HDHomeRun for channel settings')
+    parser.add_argument('--destination-hdhr', '--dst-hdhr', '--dsthdhr',
+                        action='store', type=str, dest='dsthdhr', required=True,
+                        help='the destination HDHomeRun for channel settings')
+    parser.add_argument('--channel', '--channels', '--include-channel', '--include-channels',
+                        nargs='+', type=channelCheck, dest='channelInclude',
+                        help='list of channels to consider.  The default is all')
+    parser.add_argument('--exclude-channel', '--exclude-channels', '--no-channel', '--no-channels',
+                        nargs='+', type=channelCheck, dest='channelExclude',
+                        help='list of channels to exclude.  The default is none')
+    parser.add_argument('--dry-run', action='store_true', dest='dryrun', default=False,
+                        help='dry run only (do not update)')
+    parser.add_argument('--quiet', action='store_true', dest='quiet', default=False,
+                        help='do not display output')
+
+    args = parser.parse_args()
+
+    # Discover HDHRs
+    discoveredHDHRs = HDHRdiscover()
+
+    # Try to match the selected source HDHR
+
+    srcHDHRip = None
+
+    if re.match('^[0-9A-Z]{8}$', args.srchdhr.upper()):    # deviceid?
+        for d in discoveredHDHRs:
+            if d['DeviceID'] == args.srchdhr.upper():
+                srcHDHRip = d['LocalIP']
+                break
+    else:                                          # possible IP or dns
+        try:
+            ip = socket.getaddrinfo(args.srchdhr, None)[0][4][0]
+            for d in discoveredHDHRs:
+                if d['LocalIP'] == ip:
+                    srcHDHRip = d['LocalIP']
+                    break
+            if srcHDHRip is None:
+                # If we got a valid IP, just use it
+                srcHDHRip = ip
+        except socket.error:
+            pass
+
+    if srcHDHRip is None:
+        print("The source HDHR device not found")
+        sys.exit(1)
+
+    # Try to match the selected destination HDHR
+
+    dstHDHRip = None
+
+    if re.match('^[0-9A-Z]{8}$', args.dsthdhr.upper()):    # deviceid?
+        for d in discoveredHDHRs:
+            if d['DeviceID'] == args.dsthdhr.upper():
+                dstHDHRip = d['LocalIP']
+                break
+    else:                                          # possible IP or dns
+        try:
+            ip = socket.getaddrinfo(args.dsthdhr, None)[0][4][0]
+            for d in discoveredHDHRs:
+                if d['LocalIP'] == ip:
+                    dstHDHRip = d['LocalIP']
+                    break
+            if dstHDHRip is None:
+                # If we got a valid IP, just use it
+                dstHDHRip = ip
+        except socket.error:
+            pass
+
+    if dstHDHRip is None:
+        print("The destination HDHR device not found")
+        sys.exit(1)
+
+
+    # Get channel list from source hdhr
+    hdhrLineup = []
+    try:
+        hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(srcHDHRip)).json()
+    except requests.exceptions.RequestException:
+        print('Unable to obtain lineup from {}'.format(srcHDHRip))
+        sys.exit(1)
+    srchdhrChannelList = {}
+    for hdhrChannel in hdhrLineup:
+        subscribed = True
+        if 'Subscribed' in hdhrChannel:
+            subscribed = bool(hdhrChannel['Subscribed'])
+        if not subscribed:
+            continue
+        if 'GuideNumber' not in hdhrChannel:
+            continue
+        guidenumber = channelNormalize(hdhrChannel['GuideNumber'])
+        if args.channelInclude is not None:
+            if guidenumber not in args.channelInclude:
+                continue
+        if args.channelExclude is not None:
+            if guidenumber in args.channelExclude:
+                continue
+        srchdhrChannelList[guidenumber] = hdhrChannel
+
+    # Get channel list from destination hdhr
+    hdhrLineup = []
+    try:
+        hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(dstHDHRip)).json()
+    except requests.exceptions.RequestException:
+        print('Unable to obtain lineup from {}'.format(srcHDHRip))
+        sys.exit(1)
+    dsthdhrChannelList = {}
+    for hdhrChannel in hdhrLineup:
+        subscribed = True
+        if 'Subscribed' in hdhrChannel:
+            subscribed = bool(hdhrChannel['Subscribed'])
+        if not subscribed:
+            continue
+        if 'GuideNumber' not in hdhrChannel:
+            continue
+        guidenumber = channelNormalize(hdhrChannel['GuideNumber'])
+        dsthdhrChannelList[guidenumber] = hdhrChannel
+
+    for channel, hdhrChannel in natsort.natsorted(srchdhrChannelList.items()):
+        srcEnabled = True
+        srcFavorite = False
+        if 'Enabled' in hdhrChannel:
+            srcEnabled = bool(hdhrChannel['Enabled'])
+        if 'Favorite' in hdhrChannel:
+            srcFavorite = bool(hdhrChannel['Favorite'])
+        if 'GuideName' in hdhrChannel:
+            name = hdhrChannel['GuideName']
+        else:
+            name = 'Unknown'
+        srcCurrentDisplayValue = 'disabled'
+        dstNewSettingValue = 'x'
+        if srcFavorite:
+            srcCurrentDisplayValue = 'favorite'
+            dstNewSettingValue = '+'
+        elif srcEnabled:
+            srcCurrentDisplayValue = 'enabled'
+            dstNewSettingValue = '-'
+        if not args.quiet:
+            print('Channel ' + channel + ' (' + name + ') on source HDHR is currently set as ' + srcCurrentDisplayValue)
+        if channel not in dsthdhrChannelList:
+            if not args.quiet:
+                print('    Channel ' + channel + ' does not exist on the destination HDHR')
+            continue
+        else:
+            dstEnabled = True
+            dstFavorite = False
+            if 'Enabled' in dsthdhrChannelList[channel]:
+                dstEnabled = bool(dsthdhrChannelList[channel]['Enabled'])
+            if 'Favorite' in dsthdhrChannelList[channel]:
+                dstFavorite = bool(dsthdhrChannelList[channel]['Favorite'])
+            if (srcFavorite == dstFavorite) and (srcEnabled == dstEnabled):
+                if not args.quiet:
+                    print('    Channel ' + channel + ' on destination HDHR is already set correctly')
+                continue
+        if args.dryrun is not True:
+            try:
+                r = requests.post('http://' + dstHDHRip + '/lineup.post?favorite=' + dstNewSettingValue + channel)
+                r.raise_for_status()
+                if not args.quiet:
+                    print('    Channel ' + channel + ' on destination HDHR updated')
+            except requests.exceptions.RequestException:
+                if not args.quiet:
+                    print('    Channel ' + channel + ' update on destination HDHR failed')
+        else:
+            if not args.quiet:
+                print('    Channel ' + channel + ' not updated on destination HDHR due to --dry-run specified')
+
+
+
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
