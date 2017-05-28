@@ -64,7 +64,7 @@ def HDHRdiscover():
         r.raise_for_status()
         SDdiscover = r.json()
     except requests.exceptions.RequestException:
-        SDdiscover = []
+        SDdiscover = {}
 
     for device in SDdiscover:
         Legacy = False
