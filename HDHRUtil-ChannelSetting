@@ -63,7 +63,7 @@ def HDHRdiscover():
         r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
         r.raise_for_status()
         SDdiscover = r.json()
-    except:
+    except requests.exceptions.RequestException:
         SDdiscover = []
 
     for device in SDdiscover:
@@ -113,7 +113,7 @@ def HDHRdiscover():
             r = requests.get(discoveredTuners[device], timeout=(.2, .2))
             r.raise_for_status()
             discoverResponse = r.json()
-        except:
+        except requests.exceptions.RequestException:
             discoverResponse = {}
 
         Legacy = False
@@ -152,7 +152,7 @@ def channelNormalize(channel):
 def channelCheck(channel):
     try:
         return channelNormalize(channel)
-    except:
+    except TypeError:
         raise argparse.ArgumentTypeError('{} is not a valid channel'.format(channel))
 
 
@@ -198,7 +198,7 @@ if __name__ == '__main__':
             if HDHRip is None:
                 # If we got a valid IP, just use it
                 HDHRip = ip
-        except:
+        except socket.error:
             pass
 
     if HDHRip is None:
@@ -208,7 +208,7 @@ if __name__ == '__main__':
     # Get channel list from hdhr
     try:
         hdhrLineup = requests.get('http://{}/lineup.json?show=all'.format(HDHRip)).json()
-    except:
+    except requests.exceptions.RequestException:
         print ('Unable to obtain lineup from {}'.format(HDHRip))
         sys.exit(1)
     hdhrChannelList = {}
