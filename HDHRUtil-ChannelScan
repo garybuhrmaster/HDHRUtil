@@ -1,0 +1,263 @@
+#!/usr/bin/env python3
+
+"""
+
+HDHRUtil-ChannelScan
+
+HDHRUtil-ChannelScan is a utility for reporting or
+requesting an HDHR device channel scan
+
+Copyright (c) 2017 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+This utility currently uses a reverse engineered
+interface to the HDHR, which, as it is not documented
+as a stable API, could change at any time.
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+
+"""
+
+
+import sys
+import requests
+import json
+import re
+import argparse
+import socket
+import natsort
+
+
+def HDHRdiscover():
+
+    #
+    # Try a few different ways to identify eligible HDHRs
+    #
+    #
+    # First, obtain list from my.hdhomerun.com (SD provided service)
+    #
+    # Second, try to get a list of IP addresses that appear to
+    # be tuners (via a hand constructed packet (we just collect
+    # the IP addresses, and then perform a discovery)
+    #
+
+    discoveredTuners = {}
+
+    try:
+        r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
+        r.raise_for_status()
+        SDdiscover = r.json()
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+        SDdiscover = []
+
+    for device in SDdiscover:
+        Legacy = False
+        DeviceID = None
+        DiscoverURL = None
+        LocalIP = None
+        if 'Legacy' in device:
+            Legacy = bool(device['Legacy'])
+        if 'DeviceID' in device:
+            DeviceID = device['DeviceID']
+        if 'DiscoverURL' in device:
+            DiscoverURL = device['DiscoverURL']
+        if 'LocalIP' in device:
+            LocalIP = device['LocalIP']
+
+        if (Legacy) or (DeviceID is None) or (DiscoverURL is None) or (LocalIP is None):
+            continue
+
+        discoveredTuners[LocalIP] = DiscoverURL
+
+    discovery_udp_port = 65001
+    # Hand constructed discovery message (device type = tuner, device id = wildcard)
+    discovery_udp_msg = bytearray.fromhex('00 02 00 0c 01 04 00 00 00 01 02 04 ff ff ff ff 4e 50 7f 35')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    sock.settimeout(.2)
+    for i in range(2):
+        sock.sendto(discovery_udp_msg, ('<broadcast>', discovery_udp_port))
+        while True:
+            try:
+                (buf, addr) = sock.recvfrom(2048)
+            except socket.timeout:
+                break
+            if addr is None:
+                continue
+            if buf is None:
+                continue
+
+            DiscoverURL = 'http://' + addr[0] + ':80/discover.json'
+            discoveredTuners[addr[0]] = DiscoverURL
+
+    eligibleTuners = []
+
+    for device in discoveredTuners:
+        try:
+            r = requests.get(discoveredTuners[device], timeout=(.2, .2))
+            r.raise_for_status()
+            discoverResponse = r.json()
+        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+            discoverResponse = {}
+
+        Legacy = False
+        DeviceID = None
+        LineupURL = None
+        if 'Legacy' in discoverResponse:
+            Legacy = bool(discoverResponse['Legacy'])
+        if 'DeviceID' in discoverResponse:
+            DeviceID = discoverResponse['DeviceID']
+        if 'LineupURL' in discoverResponse:
+            LineupURL = discoverResponse['LineupURL']
+
+        if (Legacy) or (DeviceID is None) or (LineupURL is None):
+            continue
+
+        discoverResponse['LocalIP'] = device
+        eligibleTuners.append(discoverResponse)
+
+    return eligibleTuners
+
+
+if __name__ == '__main__':
+
+    # Parse our args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--hdhr', action='store', type=str, dest='hdhr', required=True,
+                        help='the HDHomeRun to manage')
+    actiongroup = parser.add_mutually_exclusive_group(required=False)
+    actiongroup.add_argument('--status', action='store_true', default=True, dest='status',
+                        help='status of the channel scan (default action)')
+    actiongroup.add_argument('--start', action='store_true', default=False, dest='start',
+                        help='start a channel scan')
+    actiongroup.add_argument('--stop', '--abort', action='store_true', default=False, dest='stop',
+                        help='stop a channel scan')
+    parser.add_argument('--source', action='store', type=str, dest='source',
+                        help='specify a source type')
+
+    args = parser.parse_args()
+
+    # Discover HDHRs
+    discoveredHDHRs = HDHRdiscover()
+
+    # Try to match the select HDHR
+
+    HDHRip = None
+
+    if re.match('^[0-9A-Z]{8}$', args.hdhr.upper()):    # deviceid?
+        for d in discoveredHDHRs:
+            if d['DeviceID'] == args.hdhr.upper():
+                HDHRip = d['LocalIP']
+                break
+    else:                                          # possible IP or dns
+        try:
+            ip = socket.getaddrinfo(args.hdhr, None)[0][4][0]
+            for d in discoveredHDHRs:
+                if d['LocalIP'] == ip:
+                    HDHRip = d['LocalIP']
+                    break
+            if HDHRip is None:
+                # If we got a valid IP, just use it
+                HDHRip = ip
+        except socket.error:
+            pass
+
+    if HDHRip is None:
+        print("HDHR device not found")
+        sys.exit(1)
+
+    # Get current status
+    try:
+        hdhrLineupStatus = requests.get('http://{}/lineup_status.json'.format(HDHRip)).json()
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+        print('Unable to obtain lineup status from {}'.format(HDHRip))
+        sys.exit(1)
+
+    scanInProgress = False
+    scanPossible = False
+    scanProgress = 0
+    scanFound = 0
+    source = 'Unknown'
+    sourceList = ['Unknown']
+
+    if 'ScanInProgress' in hdhrLineupStatus:
+        scanInProgress = bool(hdhrLineupStatus['ScanInProgress'])
+        if 'Progress' in hdhrLineupStatus:
+            scanProgress = hdhrLineupStatus['Progress']
+        if 'Found' in hdhrLineupStatus:
+            scanFound = hdhrLineupStatus['Found']
+    if 'ScanPossible' in hdhrLineupStatus:
+        scanPossible = bool(hdhrLineupStatus['ScanPossible'])
+    if 'Source' in hdhrLineupStatus:
+        source = hdhrLineupStatus['Source']
+    if 'SourceList' in hdhrLineupStatus:
+        sourceList = hdhrLineupStatus['SourceList']
+
+###	var url = "/lineup.post?scan=" + scan;
+###	var xmlhttp = new XMLHttpRequest();
+###	var source = document.getElementById('source');
+###	if (source != undefined) {
+###		url += "&source=" + source.options[source.selectedIndex].innerHTML;
+
+
+### {"ScanInProgress":1,"Progress":1,"Found":10}
+
+	
+
+    if args.start:
+        if scanInProgress:
+            print('Scan already in progress on {}'.format(HDHRip))
+        elif not scanPossible:
+            print('Scan not possible on {}'.format(HDHRip))
+        else:
+            sourceSpec = ''
+            if args.source:
+                if args.source in sourceList:
+                    sourceSpec='&source={}'.format(args.source)
+                else:
+                    print('Source specification {} is not valid'.format(args.source))
+                    sys.exit(1)
+            try:
+                start = requests.get('http://{}/lineup.post?scan=start'.format(HDHRip) + sourceSpec)
+            except requests.exceptions.RequestException:
+                print('Unable to start scan')
+                sys.exit(1)
+            print('Scan started')
+    elif args.stop:
+        if not scanInProgress:
+            print('Scan not in progress on {}'.format(HDHRip))
+        else:
+            try:
+                start = requests.get('http://{}/lineup.post?scan=abort'.format(HDHRip))
+            except requests.exceptions.RequestException:
+                print('Unable to abort scan')
+                sys.exit(1)
+            print('Scan stopped')
+    else:
+        if scanInProgress:
+            print('Scan in currently in progress on {}, progress = {}, found = {} '.format(HDHRip, scanProgress, scanFound))
+        else:
+            if scanPossible:
+                print('Scan possible on {}, current source is {}, possible source settings are: {}'.format(HDHRip, source, ', '.join(sourceList)))
+            else:
+                print('Scan not possible on {}'.format(HDHRip))
+
+
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
