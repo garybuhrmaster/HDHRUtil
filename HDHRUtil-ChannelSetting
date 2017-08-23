@@ -144,9 +144,9 @@ def channelNormalize(channel):
     elif m1:
         return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
     elif m2:
-        return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
+        return '{0}.{1}'.format(int(m2.group(1)), int(m2.group(2)))
     elif m3:
-        return '{0}.{1}'.format(int(m1.group(1)), int(m1.group(2)))
+        return '{0}.{1}'.format(int(m3.group(1)), int(m3.group(2)))
     raise TypeError('Invalid channel: {0}'.format(channel))
 
 def channelCheck(channel):
