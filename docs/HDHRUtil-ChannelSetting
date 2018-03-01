@@ -1,0 +1,32 @@
+HDHRUtil-ChannelSetting - Set the channel status for a HDHR device
+
+
+usage: HDHRUtil-ChannelSetting [-h] --hdhr HDHR
+                               [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
+                               [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
+                               [--set {enabled,disabled,favorite}] [--dry-run]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --hdhr HDHR           the HDHomeRun to manage
+  --channel CHANNELINCLUDE [CHANNELINCLUDE ...], --channels CHANNELINCLUDE [CHANNELINCLUDE ...], --include-channel CHANNELINCLUDE [CHANNELINCLUDE ...], --include-channels CHANNELINCLUDE [CHANNELINCLUDE ...]
+                        list of channels to consider. The default is all
+  --exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...], --exclude-channels CHANNELEXCLUDE [CHANNELEXCLUDE ...], --no-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...], --no-channels CHANNELEXCLUDE [CHANNELEXCLUDE ...]
+                        list of channels to exclude. The default is none
+  --set {enabled,disabled,favorite}
+                        channel setting (enabled, disabled, favorite). The
+                        default is just to report the status.
+  --dry-run             dry run only (do not update)
+
+
+
+Scenario:
+
+You want a disable channel 2 on your HDHR
+
+   HDHRUtil-ChannelSetting --hdhr=myhdhr.local --channel 2 --set disabled
+
+You want to display the current channel status on your HDHR
+
+   HDHRUtil-ChannelSetting --hdhr=myhdhr.local 
+

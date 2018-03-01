@@ -1,0 +1,125 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "id": "https://silicondust.com/schemas/metadata-schema#",
+    "type": "object",
+    "description": "The SiliconDust HDHomeRun DVR metadata schema",
+    "properties": {
+        "Category": {
+            "id": "/properties/Category",
+            "description": "The category of the show",
+            "type": "string",
+            "enum": ["series", "movie", "live", "news", "other"]
+        },
+        "ChannelAffiliate": {
+            "id": "/properties/ChannelAffiliate",
+            "description": "The channel affiliate",
+            "type": "string"
+        },
+        "ChannelImageURL": {
+            "id": "/properties/ChannelImageURL",
+            "description": "The URL of the channel",
+            "type": "string",
+            "format": "uri"
+        },
+        "ChannelName": {
+            "id": "/properties/ChannelName",
+            "description": "The name of the channel",
+            "type": "string"
+        },
+        "ChannelNumber": {
+            "id": "/properties/ChannelNumber",
+            "description": "The number of the channel",
+            "type": "string"
+        },
+        "CmdURL": {
+            "id": "/properties/CmdURL",
+            "type": "string",
+            "format": "uri"
+        },
+        "DisplayGroupID": {
+            "id": "/properties/DisplayGroupID",
+            "type": "string"
+        },
+        "DisplayGroupTitle": {
+            "id": "/properties/DisplayGroupTitle",
+            "type": "string"
+        },
+        "EndTime": {
+            "id": "/properties/EndTime",
+            "description": "The end time (UTC epoch seconds) of the show",
+            "type": "integer",
+            "minimum": 0
+        },
+        "EpisodeNumber": {
+            "id": "/properties/EpisodeNumber",
+            "type": "string"
+        },
+        "EpisodeTitle": {
+            "id": "/properties/EpisodeTitle",
+            "type": "string"
+        },
+        "FirstAiring": {
+            "id": "/properties/FirstAiring",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+        },
+        "ImageURL": {
+            "id": "/properties/ImageURL",
+            "type": "string",
+            "format": "uri"
+        },
+        "OriginalAirdate": {
+            "id": "/properties/OriginalAirdate",
+            "description": "The original airdate (UTC epoch seconds) of the show",
+            "type": "integer",
+            "minimum": 0
+        },
+        "PlayURL": {
+            "id": "/properties/PlayURL",
+            "type": "string",
+            "format": "uri"
+        },
+        "ProgramID": {
+            "id": "/properties/ProgramID",
+            "type": "string"
+        },
+        "RecordEndTime": {
+            "id": "/properties/RecordEndTime",
+            "description": "The end time (UTC epoch seconds) of the end of the recording",
+            "type": "integer",
+            "minimum": 0
+        },
+        "RecordStartTime": {
+            "id": "/properties/RecordStartTime",
+            "description": "The start time (UTC epoch seconds) of the start of the recording",
+            "type": "integer",
+            "minimum": 0
+        },
+        "RecordSuccess": {
+            "id": "/properties/RecordSuccess",
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+        },
+        "SeriesID": {
+            "id": "/properties/SeriesID",
+            "type": "string"
+        },
+        "StartTime": {
+            "id": "/properties/StartTime",
+            "description": "The start time (UTC epoch seconds) of the start of the show",
+            "type": "integer",
+            "minimum": 0
+        },
+        "Synopsis": {
+            "id": "/properties/Synopsis",
+            "type": "string"
+        },
+        "Title": {
+            "id": "/properties/Title",
+            "description": "The title of the show",
+            "type": "string"
+        }
+    }
+}
