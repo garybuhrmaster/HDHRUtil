@@ -1,0 +1,70 @@
+HDHRUtil-DVR-fileMetadata - Display, update, set a files metadata
+
+
+usage: HDHRUtil-DVR-fileMetadata [-h] --file FILE [--update | --set]
+                                 [--Category {series,movie,news,other}]
+                                 [--ChannelAffiliate CHANNELAFFILIATE]
+                                 [--ChannelImageURL CHANNELIMAGEURL]
+                                 [--ChannelName CHANNELNAME]
+                                 [--ChannelNumber CHANNELNUMBER]
+                                 [--EndTime ENDTIME]
+                                 [--EpisodeNumber EPISODENUMBER]
+                                 [--EpisodeTitle EPISODETITLE] [--FirstAiring]
+                                 [--ImageURL IMAGEURL]
+                                 [--OriginalAirdate ORIGINALAIRDATE]
+                                 [--ProgramID PROGRAMID]
+                                 [--RecordEndTime RECORDENDTIME]
+                                 [--RecordStartTime RECORDSTARTTIME]
+                                 [--RecordSuccess] [--SeriesID SERIESID]
+                                 [--StartTime STARTTIME] [--Synopsis SYNOPSIS]
+                                 [--Title TITLE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --file FILE           The file whose metadata will be manipulated
+  --update              Update the file metadata
+  --set                 Set the file metadata
+  --Category {series,movie,news,other}
+                        The program category (one of series, movie, news,
+                        other)
+  --ChannelAffiliate CHANNELAFFILIATE
+                        The program channel affiliate
+  --ChannelImageURL CHANNELIMAGEURL
+                        The program channel image url
+  --ChannelName CHANNELNAME
+                        The program channel name
+  --ChannelNumber CHANNELNUMBER
+                        The program channel number
+  --EndTime ENDTIME     The program end time
+  --EpisodeNumber EPISODENUMBER
+                        The program episode number (SnnEnn)
+  --EpisodeTitle EPISODETITLE
+                        The program episode title
+  --FirstAiring         Mark the recording as a first airing
+  --ImageURL IMAGEURL   The program image
+  --OriginalAirdate ORIGINALAIRDATE
+                        The program original air date
+  --ProgramID PROGRAMID
+                        The program id
+  --RecordEndTime RECORDENDTIME
+                        The program recording end time
+  --RecordStartTime RECORDSTARTTIME
+                        The program recording start time
+  --RecordSuccess       Mark the recording as successful
+  --SeriesID SERIESID   The program series id
+  --StartTime STARTTIME
+                        The program start time
+  --Synopsis SYNOPSIS   The program synopsis
+  --Title TITLE         The program title
+
+
+
+Scenerio:
+
+You want to display the metadata of a DVR file
+
+    HDHRUtil-DVR-fileMetadata --file FILE
+
+You want to change the EpisodeNumber of a DVR file
+
+    HDHRUtil-DVR-fileMetadata --file FILE --update --EpisodeNumber S01E14
