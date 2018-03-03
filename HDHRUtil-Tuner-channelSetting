@@ -2,9 +2,9 @@
 
 """
 
-HDHRUtil-ChannelSetting
+HDHRUtil-Tuner-channelSetting
 
-HDHRUtil-ChannelSetting is a utility for configuring the
+HDHRUtil-Tuner-channelSetting is a utility for configuring the
 channel selection on SiliconDust HDHR devices.
 
 Copyright (c) 2017 by Gary Buhrmaster <gary.buhrmaster@gmail.com>

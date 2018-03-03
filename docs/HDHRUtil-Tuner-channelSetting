@@ -1,10 +1,10 @@
-HDHRUtil-ChannelSetting - Set the channel status for a HDHR device
+HDHRUtil-Tuner-channelSetting - Set the channel status for a HDHR device
 
 
-usage: HDHRUtil-ChannelSetting [-h] --hdhr HDHR
-                               [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
-                               [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
-                               [--set {enabled,disabled,favorite}] [--dry-run]
+usage: HDHRUtil-Tuner-channelSetting [-h] --hdhr HDHR
+                                     [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
+                                     [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
+                                     [--set {enabled,disabled,favorite}] [--dry-run]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -24,9 +24,9 @@ Scenario:
 
 You want a disable channel 2 on your HDHR
 
-   HDHRUtil-ChannelSetting --hdhr=myhdhr.local --channel 2 --set disabled
+   HDHRUtil-Tuner-channelSetting --hdhr=myhdhr.local --channel 2 --set disabled
 
 You want to display the current channel status on your HDHR
 
-   HDHRUtil-ChannelSetting --hdhr=myhdhr.local 
+   HDHRUtil-Tuner-channelSetting --hdhr=myhdhr.local 
 
