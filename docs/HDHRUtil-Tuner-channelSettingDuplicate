@@ -1,11 +1,11 @@
-HDHRUtil-ChannelSettingDuplicate - Copy the channel status from one HDHR to another
+HDHRUtil-Tuner-channelSettingDuplicate - Copy the channel status from one HDHR to another
 
 
-usage: HDHRUtil-ChannelSettingDuplicate [-h] --source-hdhr SRCHDHR
-                                        --destination-hdhr DSTHDHR
-                                        [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
-                                        [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
-                                        [--dry-run] [--quiet]
+usage: HDHRUtil-Tuner-channelSettingDuplicate [-h] --source-hdhr SRCHDHR
+                                              --destination-hdhr DSTHDHR
+                                              [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
+                                              [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
+                                              [--dry-run] [--quiet]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -26,5 +26,5 @@ Scenario:
 
 You want two duplicate the channel settings from HDHR1 to HDHR2
 
-   HDHRUtil-ChannelSettingDuplicate --source-hdhr=hdhr1.local --destination-hdhr=hdhr2.local
+   HDHRUtil-Tuner-channelSettingDuplicate --source-hdhr=hdhr1.local --destination-hdhr=hdhr2.local
 

@@ -2,9 +2,9 @@
 
 """
 
-HDHRUtil-ChannelSettingDuplicate
+HDHRUtil-Tuner-channelSettingDuplicate
 
-HDHRUtil-ChannelSettingDuplicate is a utility for configuring the
+HDHRUtil-Tuner-channelSettingDuplicate is a utility for configuring the
 channel selection on SiliconDust HDHR devices by duplicating the
 list from one HDHR to another.
 
