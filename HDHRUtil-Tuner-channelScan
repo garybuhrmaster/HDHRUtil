@@ -2,9 +2,9 @@
 
 """
 
-HDHRUtil-ChannelScan
+HDHRUtil-Tuner-channelScan
 
-HDHRUtil-ChannelScan is a utility for reporting or
+HDHRUtil-Tuner-channelScan is a utility for reporting or
 requesting an HDHR device channel scan
 
 Copyright (c) 2017 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
