@@ -209,17 +209,6 @@ if __name__ == '__main__':
     if 'SourceList' in hdhrLineupStatus:
         sourceList = hdhrLineupStatus['SourceList']
 
-###	var url = "/lineup.post?scan=" + scan;
-###	var xmlhttp = new XMLHttpRequest();
-###	var source = document.getElementById('source');
-###	if (source != undefined) {
-###		url += "&source=" + source.options[source.selectedIndex].innerHTML;
-
-
-### {"ScanInProgress":1,"Progress":1,"Found":10}
-
-	
-
     if args.start:
         if scanInProgress:
             print('Scan already in progress on {}'.format(HDHRip))
@@ -257,6 +246,7 @@ if __name__ == '__main__':
                 print('Scan possible on {}, current source is {}, possible source settings are: {}'.format(HDHRip, source, ', '.join(sourceList)))
             else:
                 print('Scan not possible on {}'.format(HDHRip))
+
 
 
 
