@@ -204,6 +204,8 @@ if __name__ == '__main__':
                         help='The program episode title')
     parser.add_argument('--FirstAiring', action='store_const', const=1, dest='FirstAiring',
                         help='Mark the recording as a first airing')
+    parser.add_argument('--no-FirstAiring', action='store_const', const=0, dest='FirstAiring',
+                        help='Mark the recording as not a first airing')
     parser.add_argument('--ImageURL', action='store', dest='ImageURL',
                         help='The program image')
     parser.add_argument('--OriginalAirdate', action='store', type=airdateCheck, dest='OriginalAirdate',
@@ -216,6 +218,8 @@ if __name__ == '__main__':
                         help='The program recording start time')
     parser.add_argument('--RecordSuccess', action='store_const', const=1, dest='RecordSuccess',
                         help='Mark the recording as successful')
+    parser.add_argument('--no-RecordSuccess', action='store_const', const=0, dest='RecordSuccess',
+                        help='Mark the recording as not successful')
     parser.add_argument('--SeriesID', action='store', dest='SeriesID',
                         help='The program series id')
     parser.add_argument('--StartTime', action='store', type=datetimeCheck, dest='StartTime',
