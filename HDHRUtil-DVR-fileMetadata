@@ -185,6 +185,8 @@ if __name__ == '__main__':
                         help='Update the file metadata')
     actiongroup.add_argument('--set', action='store_true', dest='set', default=False,
                         help='Set the file metadata')
+    actiongroup.add_argument('--delete', action='store_true', dest='delete', default=False,
+                        help='Delete the specified keys in the file metadata')
     parser.add_argument('--Category', action='store', dest='Category',
                         choices=['series', 'movie', 'news', 'other'],
                         help='The program category (one of series, movie, news, other)')
@@ -243,7 +245,7 @@ if __name__ == '__main__':
 
     # Open file
     openmode = 'rb'
-    if args.set or args.update:
+    if args.set or args.update or args.delete:
         openmode = 'r+b'
     try:
         ffile = open(args.file, openmode)
@@ -261,7 +263,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Perform the request
-    if (not args.set) and (not args.update):
+    if (not args.set) and (not args.update) and (not args.delete):
         if metadata:
             print('WARNING: Metadata values specified ignored, did you mean to --update or --set?')
         print(json.dumps(fileMetadata, sort_keys=True, indent=4))
@@ -270,6 +272,12 @@ if __name__ == '__main__':
             fileMetadata.update(metadata)
         elif args.set:
             fileMetadata = metadata
+        elif args.delete:
+            for key in metadata:
+                try:
+                    del fileMetadata[key]
+                except KeyError:
+                    pass
         try:
             ts = metadataToTransportStream(fileMetadata)
         except (ValueError, TypeError) as e:

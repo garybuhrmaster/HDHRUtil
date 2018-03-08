@@ -1,7 +1,8 @@
 HDHRUtil-DVR-fileMetadata - Display, update, set a files metadata
 
 
-usage: HDHRUtil-DVR-fileMetadata [-h] --file FILE [--update | --set]
+usage: HDHRUtil-DVR-fileMetadata [-h] --file FILE
+                                 [--update | --set | --delete]
                                  [--Category {series,movie,news,other}]
                                  [--ChannelAffiliate CHANNELAFFILIATE]
                                  [--ChannelImageURL CHANNELIMAGEURL]
@@ -24,6 +25,7 @@ optional arguments:
   --file FILE           The file whose metadata will be manipulated
   --update              Update the file metadata
   --set                 Set the file metadata
+  --delete              Delete the specified keys in the file metadata
   --Category {series,movie,news,other}
                         The program category (one of series, movie, news,
                         other)
