@@ -36,12 +36,11 @@ as a stable API, could change at any time.
 
 
 import sys
-import requests
 import json
 import re
 import argparse
 import socket
-import natsort
+import requests
 
 
 def HDHRdiscover():
@@ -143,11 +142,11 @@ if __name__ == '__main__':
                         help='the HDHomeRun to manage')
     actiongroup = parser.add_mutually_exclusive_group(required=False)
     actiongroup.add_argument('--status', action='store_true', default=True, dest='status',
-                        help='status of the channel scan (default action)')
+                             help='status of the channel scan (default action)')
     actiongroup.add_argument('--start', action='store_true', default=False, dest='start',
-                        help='start a channel scan')
+                             help='start a channel scan')
     actiongroup.add_argument('--stop', '--abort', action='store_true', default=False, dest='stop',
-                        help='stop a channel scan')
+                             help='stop a channel scan')
     parser.add_argument('--source', action='store', type=str, dest='source',
                         help='specify a source type')
 
