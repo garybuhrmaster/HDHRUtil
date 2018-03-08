@@ -265,18 +265,11 @@ if __name__ == '__main__':
         if metadata:
             print('WARNING: Metadata values specified ignored, did you mean to --update or --set?')
         print(json.dumps(fileMetadata, sort_keys=True, indent=4))
-    elif args.update:
-        fileMetadata.update(metadata)
-        try:
-            ts = metadataToTransportStream(fileMetadata)
-        except (ValueError, TypeError) as e:
-            print('Unable to convert specified metadata to transport stream: {}'.format(str(e)))
-            sys.exit(1)
-        ffile.seek(0, 0)
-        ffile.write(ts)
-        ffile.seek(0, 2)
-    elif args.set:
-        fileMetadata = metadata
+    else:
+        if args.update:
+            fileMetadata.update(metadata)
+        elif args.set:
+            fileMetadata = metadata
         try:
             ts = metadataToTransportStream(fileMetadata)
         except (ValueError, TypeError) as e:
