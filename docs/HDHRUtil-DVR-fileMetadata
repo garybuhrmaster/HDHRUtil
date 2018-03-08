@@ -10,14 +10,14 @@ usage: HDHRUtil-DVR-fileMetadata [-h] --file FILE [--update | --set]
                                  [--EndTime ENDTIME]
                                  [--EpisodeNumber EPISODENUMBER]
                                  [--EpisodeTitle EPISODETITLE] [--FirstAiring]
-                                 [--ImageURL IMAGEURL]
+                                 [--no-FirstAiring] [--ImageURL IMAGEURL]
                                  [--OriginalAirdate ORIGINALAIRDATE]
                                  [--ProgramID PROGRAMID]
                                  [--RecordEndTime RECORDENDTIME]
                                  [--RecordStartTime RECORDSTARTTIME]
-                                 [--RecordSuccess] [--SeriesID SERIESID]
-                                 [--StartTime STARTTIME] [--Synopsis SYNOPSIS]
-                                 [--Title TITLE]
+                                 [--RecordSuccess] [--no-RecordSuccess]
+                                 [--SeriesID SERIESID] [--StartTime STARTTIME]
+                                 [--Synopsis SYNOPSIS] [--Title TITLE]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -41,6 +41,7 @@ optional arguments:
   --EpisodeTitle EPISODETITLE
                         The program episode title
   --FirstAiring         Mark the recording as a first airing
+  --no-FirstAiring      Mark the recording as not a first airing
   --ImageURL IMAGEURL   The program image
   --OriginalAirdate ORIGINALAIRDATE
                         The program original air date
@@ -51,6 +52,7 @@ optional arguments:
   --RecordStartTime RECORDSTARTTIME
                         The program recording start time
   --RecordSuccess       Mark the recording as successful
+  --no-RecordSuccess    Mark the recording as not successful
   --SeriesID SERIESID   The program series id
   --StartTime STARTTIME
                         The program start time
