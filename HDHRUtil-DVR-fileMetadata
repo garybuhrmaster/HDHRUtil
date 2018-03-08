@@ -260,7 +260,7 @@ if __name__ == '__main__':
         print('File {} does not appear to contain valid metadata at the start of the file: {}'.format(args.file, str(e)))
         sys.exit(1)
 
-    # Perform out request
+    # Perform the request
     if (not args.set) and (not args.update):
         if metadata:
             print('WARNING: Metadata values specified ignored, did you mean to --update or --set?')
