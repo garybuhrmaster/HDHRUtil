@@ -36,12 +36,12 @@ as a stable API, could change at any time.
 
 
 import sys
-import requests
 import json
 import re
 import argparse
 import socket
 import natsort
+import requests
 
 
 def HDHRdiscover():
