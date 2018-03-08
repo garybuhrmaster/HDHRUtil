@@ -39,9 +39,7 @@ any time.
 import sys
 import json
 import argparse
-import os
 import re
-import shutil
 import datetime
 import dateutil
 import dateutil.parser
@@ -63,7 +61,7 @@ def episodeNumCheck(episodeNum):
 
 def programIDCheck(programID):
     if (len(programID) == 14) and (programID[0:2] in ['EP', 'MV', 'SH', 'SP']) and (re.match('^[0-9]+$', programID[2:])):
-        return(programID)
+        return programID
     else:
         raise argparse.ArgumentTypeError('{} is not a valid ProgramID (14 characters, starts with EP, MV, SH, SP'.format(programID))
 
@@ -132,7 +130,6 @@ def transportStreamToMetadata(ts):
             raise ValueError('transport stream does not contain proper PID value')
         if ts[pkt * 188 + 3] != 0x10 + pkt % 16:
             raise ValueError('transport stream does not contain proper adaption and sequence bytes')
-            return None
         for c in range(4, 188, 1):
             if ts[pkt * 188 + c] == 0xff:
                 break
@@ -182,11 +179,11 @@ if __name__ == '__main__':
                         help='The file whose metadata will be manipulated')
     actiongroup = parser.add_mutually_exclusive_group(required=False)
     actiongroup.add_argument('--update', action='store_true', dest='update', default=False,
-                        help='Update the file metadata')
+                             help='Update the file metadata')
     actiongroup.add_argument('--set', action='store_true', dest='set', default=False,
-                        help='Set the file metadata')
+                             help='Set the file metadata')
     actiongroup.add_argument('--delete', action='store_true', dest='delete', default=False,
-                        help='Delete the specified keys in the file metadata')
+                             help='Delete the specified keys in the file metadata')
     parser.add_argument('--Category', action='store', dest='Category',
                         choices=['series', 'movie', 'news', 'other'],
                         help='The program category (one of series, movie, news, other)')
@@ -200,7 +197,7 @@ if __name__ == '__main__':
                         help='The program channel number')
     parser.add_argument('--EndTime', action='store', type=datetimeCheck, dest='EndTime',
                         help='The program end time')
-    parser.add_argument('--EpisodeNumber',  action='store', type=episodeNumCheck, dest='EpisodeNumber',
+    parser.add_argument('--EpisodeNumber', action='store', type=episodeNumCheck, dest='EpisodeNumber',
                         help='The program episode number (SnnEnn)')
     parser.add_argument('--EpisodeTitle', action='store', dest='EpisodeTitle',
                         help='The program episode title')
@@ -228,7 +225,7 @@ if __name__ == '__main__':
                         help='The program start time')
     parser.add_argument('--Synopsis', action='store', dest='Synopsis',
                         help='The program synopsis')
-    parser.add_argument('--Title', action='store', dest='Title', 
+    parser.add_argument('--Title', action='store', dest='Title',
                         help='The program title')
 
     args = parser.parse_args()
@@ -254,7 +251,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     # Check metadata at front
-    ffile.seek(0,0)
+    ffile.seek(0, 0)
     pkts = ffile.read(12032)
     try:
         fileMetadata = transportStreamToMetadata(pkts)
