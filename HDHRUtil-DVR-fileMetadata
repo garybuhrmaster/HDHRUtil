@@ -182,7 +182,13 @@ if __name__ == '__main__':
                              help='Update the file metadata')
     actiongroup.add_argument('--set', action='store_true', dest='set', default=False,
                              help='Set the file metadata')
-    actiongroup.add_argument('--delete', action='store_true', dest='delete', default=False,
+    actiongroup.add_argument('--delete', nargs='+', dest='delete',
+                             choices=['Category', 'ChannelAffiliate', 'ChannelImageURL',
+                                      'ChannelName', 'EndTime', 'EpisodeNumber', 'EpisodeTitle',
+                                      'FirstAiring', 'ImageURL', 'OriginalAirdate',
+                                      'ProgramID', 'RecordEndTime', 'RecortStartTime',
+                                      'RecordSuccess', 'SeriesID', 'StartTime', 'Synopsis',
+                                      'Title'],
                              help='Delete the specified keys in the file metadata')
     parser.add_argument('--Category', action='store', dest='Category',
                         choices=['series', 'movie', 'news', 'other'],
@@ -270,7 +276,7 @@ if __name__ == '__main__':
         elif args.set:
             fileMetadata = metadata
         elif args.delete:
-            for key in metadata:
+            for key in args.delete:
                 try:
                     del fileMetadata[key]
                 except KeyError:
