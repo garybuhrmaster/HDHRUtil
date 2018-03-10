@@ -186,7 +186,7 @@ if __name__ == '__main__':
                              choices=['Category', 'ChannelAffiliate', 'ChannelImageURL',
                                       'ChannelName', 'EndTime', 'EpisodeNumber', 'EpisodeTitle',
                                       'FirstAiring', 'ImageURL', 'OriginalAirdate',
-                                      'ProgramID', 'RecordEndTime', 'RecortStartTime',
+                                      'ProgramID', 'RecordEndTime', 'RecordStartTime',
                                       'RecordSuccess', 'SeriesID', 'StartTime', 'Synopsis',
                                       'Title'],
                              help='Delete the specified keys in the file metadata')
