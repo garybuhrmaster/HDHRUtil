@@ -1,0 +1,321 @@
+#!/usr/bin/env python3
+
+"""
+
+HDHRUtil-DVR-Import
+
+HDHRUtil-DVR-Import is a utility for importing existing
+transport stream files into a format that the DVR record
+engine can process
+
+Copyright (c) 2018 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+This utility currently uses a reverse engineered
+schema definition to the file metadata.  As it is
+not documented as a stable ABI, it could change at
+any time.
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+
+"""
+
+
+import sys
+import json
+import argparse
+import os
+import re
+import shutil
+import datetime
+import dateutil
+import dateutil.parser
+import dateutil.tz
+
+
+def episodeNumNormalize(episodeNum):
+    m0 = re.match('^S(\d+)E(\d+)$', episodeNum, re.IGNORECASE)
+    if m0:
+        return 'S{0:02}E{1:02}'.format(int(m0.group(1)), int(m0.group(2)))
+    else:
+        raise TypeError('Invalid episode number: {0}'.format(episodeNum))
+
+def episodeNumCheck(episodeNum):
+    try:
+        return episodeNumNormalize(episodeNum)
+    except TypeError:
+        raise argparse.ArgumentTypeError('{} is not a valid episode number (SnnEnn)'.format(episodeNum))
+
+def programIDCheck(programID):
+    if (len(programID) == 14) and (programID[0:2] in ['EP', 'MV', 'SH', 'SP']) and (re.match('^[0-9]+$', programID[2:])):
+        return programID
+    else:
+        raise argparse.ArgumentTypeError('{} is not a valid ProgramID (14 characters, starts with EP, MV, SH, SP'.format(programID))
+
+def datetimeCheck(dt):
+    # Accept a epoch integer (presume the person knows for what they offer)
+    if re.match('^(\d+)$', dt):
+        return int(dt)
+    try:
+        d = dateutil.parser.parse(dt)
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=dateutil.tz.tzlocal())
+        return int((d - datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)).total_seconds())
+    except:
+        raise argparse.ArgumentTypeError('{} is not a valid datetime'.format(dt))
+
+def airdateCheck(dt):
+    # Accept a epoch integer (presume the person knows for what they offer)
+    if re.match('^(\d+)$', dt):
+        return int(dt)
+    try:
+        d = dateutil.parser.parse(dt)
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=dateutil.tz.tzlocal())
+        dz = d.astimezone(tz=datetime.timezone.utc)
+        dm = datetime.datetime(dz.year, dz.month, dz.day, tzinfo=datetime.timezone.utc)
+        return int((dm - datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)).total_seconds())
+    except:
+        raise argparse.ArgumentTypeError('{} is not a valid datetime'.format(dt))
+
+
+def channelNormalize(channel):
+    m0 = re.match('^(\d+)$', channel)
+    m1 = re.match('^(\d+)\.(\d+)$', channel)
+    m2 = re.match('^(\d+)_(\d+)$', channel)
+    m3 = re.match('^(\d+)-(\d+)$', channel)
+    if m0:
+        return '{}'.format(int(m0.group(1)))
+    elif m1:
+        return '{}.{}'.format(int(m1.group(1)), int(m1.group(2)))
+    elif m2:
+        return '{}.{}'.format(int(m2.group(1)), int(m2.group(2)))
+    elif m3:
+        return '{}.{}'.format(int(m3.group(1)), int(m3.group(2)))
+    raise TypeError('Invalid channel: {}'.format(channel))
+
+def channelCheck(channel):
+    try:
+        return channelNormalize(channel)
+    except Exception:
+        raise argparse.ArgumentTypeError('{} is not a valid channel'.format(channel))
+
+def transportStreamToMetadata(ts):
+    # Obtain metadata from transport stream
+    metadata = bytearray()
+    if len(ts) != 12032:
+        raise ValueError('transport stream too short for metadata')
+    for pkt in range(0, 64, 1):
+        if ts[pkt * 188 + 0] != 0x47:
+            raise ValueError('transport stream does not contain proper sync bytes')
+        if pkt == 0:
+            if ts[pkt * 188 + 1] != 0x5f:
+                raise ValueError('transport stream does not contain proper start payload and PID value bytes')
+        else:
+            if ts[pkt * 188 + 1] != 0x1f:
+                raise ValueError('transport stream does not contain proper payload and PID value bytes')
+        if ts[pkt * 188 + 2] != 0xfa:
+            raise ValueError('transport stream does not contain proper PID value')
+        if ts[pkt * 188 + 3] != 0x10 + pkt % 16:
+            raise ValueError('transport stream does not contain proper adaption and sequence bytes')
+            return None
+        for c in range(4, 188, 1):
+            if ts[pkt * 188 + c] == 0xff:
+                break
+            metadata.append(ts[pkt * 188 + c])
+    if len(metadata) <= 0:
+        raise ValueError('transport stream does not contain any metadata')
+    try:
+        return json.loads(metadata, encoding='utf-8')
+    except:
+        raise ValueError('transport stream metadata is not decodable as json')
+
+def metadataToTransportStream(metadata):
+    # Create transport stream with metadata
+    TS = bytearray([0xff]*12032)
+    for pkt in range(0, 64, 1):
+        TS[pkt * 188 + 0] = 0x47               # sync byte
+        if pkt == 0:
+            TS[pkt * 188 + 1] = 0x5f           # start + PID (0x1ffa)
+        else:
+            TS[pkt * 188 + 1] = 0x1f           # PID (0x1ffa)
+        TS[pkt * 188 + 2] = 0xfa
+        TS[pkt * 188 + 3] = 0x10 + pkt % 16    # Scrambling (none) + Adaption (payload only) + sequence
+    if type(metadata) != dict:
+        raise TypeError('metadata is not a valid dict')
+    try:
+        meta = bytearray(json.dumps(metadata, separators=(',', ':')), 'utf-8')
+    except:
+        raise ValueError('metadata can not be converted to json')
+    if len(meta) > 11776:
+        raise ValueError('metadata json string exceeds allowable length')
+    for pkt in range(0, 64, 1):
+        l = min(len(meta), 184)
+        offset = pkt * 188 + 4
+        for c in range(0, l, 1):
+            TS[offset + c] = meta[c]
+        meta = meta[l:]
+        if len(meta) <= 0:
+            break
+    return TS
+
+
+if __name__ == '__main__':
+
+    # Parse our args
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--infile', '--inputfile', action='store', dest='infile', required=True,
+                        help='The file to import')
+    parser.add_argument('--outfile', '--outputfile', action='store', dest='outfile', required=True,
+                        help='The output file (input file with metadata added)')
+    parser.add_argument('--force', action='store_true', dest='force', default=False,
+                        help='Copy even if infile does not appear to be a transport stream')
+    parser.add_argument('--Category', action='store', dest='Category',
+                        choices=['series', 'movie', 'news', 'other'],
+                        help='The program category (one of series, movie, news, other)')
+    parser.add_argument('--ChannelAffiliate', action='store', dest='ChannelAffiliate',
+                        help='The program channel affiliate')
+    parser.add_argument('--ChannelImageURL', action='store', dest='ChannelImageURL',
+                        help='The program channel image url')
+    parser.add_argument('--ChannelName', action='store', dest='ChannelName',
+                        help='The program channel name')
+    parser.add_argument('--ChannelNumber', action='store', type=channelCheck, dest='ChannelNumber',
+                        help='The program channel number')
+    parser.add_argument('--EndTime', action='store', type=datetimeCheck, dest='EndTime',
+                        help='The program end time')
+    parser.add_argument('--EpisodeNumber', action='store', type=episodeNumCheck, dest='EpisodeNumber',
+                        help='The program episode number (SnnEnn)')
+    parser.add_argument('--EpisodeTitle', action='store', dest='EpisodeTitle',
+                        help='The program episode title')
+    parser.add_argument('--FirstAiring', action='store_const', const=1, dest='FirstAiring',
+                        help='Mark the recording as a first airing')
+    parser.add_argument('--no-FirstAiring', action='store_const', const=0, dest='FirstAiring',
+                        help='Mark the recording as not a first airing')
+    parser.add_argument('--ImageURL', action='store', dest='ImageURL',
+                        help='The program image')
+    parser.add_argument('--OriginalAirdate', action='store', type=airdateCheck, dest='OriginalAirdate',
+                        help='The program original air date')
+    parser.add_argument('--ProgramID', action='store', dest='ProgramID',
+                        help='The program id')
+    parser.add_argument('--RecordEndTime', action='store', type=datetimeCheck, dest='RecordEndTime',
+                        help='The program recording end time')
+    parser.add_argument('--RecordStartTime', action='store', type=datetimeCheck, dest='RecordStartTime',
+                        help='The program recording start time')
+    parser.add_argument('--RecordSuccess', action='store_const', const=1, dest='RecordSuccess',
+                        help='Mark the recording as successful')
+    parser.add_argument('--no-RecordSuccess', action='store_const', const=0, dest='RecordSuccess',
+                        help='Mark the recording as not successful')
+    parser.add_argument('--SeriesID', action='store', dest='SeriesID',
+                        help='The program series id')
+    parser.add_argument('--StartTime', action='store', type=datetimeCheck, dest='StartTime',
+                        help='The program start time')
+    parser.add_argument('--Synopsis', action='store', dest='Synopsis',
+                        help='The program synopsis')
+    parser.add_argument('--Title', action='store', dest='Title',
+                        help='The program title')
+
+    args = parser.parse_args()
+
+    # Build metadata from args
+    metadata = {}
+    for m in ['Category', 'ChannelAffiliate', 'ChannelImageURL', 'ChannelName', 'ChannelNumber',
+              'EndTime', 'EpisodeNumber', 'EpisodeTitle', 'FirstAiring', 'ImageURL',
+              'OriginalAirdate', 'ProgramID', 'RecordEndTime', 'RecordStartTime', 'RecordSuccess',
+              'SeriesID', 'StartTime', 'Synopsis', 'Title']:
+        value = vars(args)[m]
+        if value is not None:
+            metadata[m] = value
+
+    # Test to see if the infile and outfile are the same file
+    if shutil._samefile(args.infile, args.outfile):
+        print('Input file ' + args.infile + ' and output file ' + args.outfile + ' are the same file.  Import not performed.')
+        sys.exit(1)
+
+    # Open infile
+    try:
+        finfile = open(args.infile, 'rb')
+    except (OSError, IOError) as e:
+        print('Unable to open input file: ' + str(e))
+        sys.exit(1)
+
+    # Check first packets to make sure they appear to be transport stream
+    finfile.seek(0, 0)
+    pkts = finfile.read(376)
+    if (len(pkts) != 376) or (0x47 != pkts[0]) or (0x47 != pkts[188]):
+        if args.force:
+            print('WARNING: Input file ' + args.infile + ' does not appear to be a valid transport stream, but copying forced')
+        else:
+            print('Input file ' + args.infile + ' does not appear to be a valid transport stream')
+            sys.exit(1)
+
+    # Check to see if the input file already has metadata
+    finfile.seek(0, 0)
+    pkts = finfile.read(12032)
+    try:
+        fileMetadata = transportStreamToMetadata(pkts)
+    except (ValueError, TypeError) as e:
+        pass
+    else:
+        if args.force:
+            print('WARNING: Input file ' + args.infile + ' contains existing metadata, but copying forced')
+        else:
+            print('Input file ' + args.infile + ' contains existing metadata')
+            sys.exit(1)
+
+    # Warn if metadata is not likely to be complete
+    if (not args.ProgramID) or (not args.SeriesID) or (not args.Title):
+        print('WARNING: ProgramID, SeriesID and Title required for record engine to recognize file')
+
+    # Open outfile (creating any required parent directories)
+    outfileParentDirs, outfileName = os.path.split(args.outfile)
+    if outfileParentDirs and not os.path.exists(outfileParentDirs):
+        try:
+            os.makedirs(outfileParentDirs)
+        except (OSError, IOError) as e:
+            print('Unable to create parent directory for output file: ' + str(e))
+            sys.exit(1)
+    try:
+        foutfile = open(args.outfile, 'wb')
+    except (OSError, IOError) as e:
+        print('Unable to open output file: ' + str(e))
+        sys.exit(1)
+
+    # Prefix with our metadata transport packets
+    try:
+        ts = metadataToTransportStream(metadata)
+    except (ValueError, TypeError) as e:
+        print('Unable to convert specified metadata to transport stream: {}'.format(str(e)))
+        sys.exit(1)
+    foutfile.write(ts)
+
+    # Copy the remaining file contents
+    finfile.seek(0, 0)
+    shutil.copyfileobj(finfile, foutfile, 10 * 1024 * 1024)
+
+    # Close it out
+    finfile.close()
+    foutfile.close()
+
+    # Try to preserve file dates
+    shutil.copystat(args.infile, args.outfile)
+
+
+
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4

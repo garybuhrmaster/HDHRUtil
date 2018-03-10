@@ -1,0 +1,75 @@
+HDHRUtil-DVR-fileImport - Import an existing file into a DVR file with metadata
+
+
+usage: HDHRUtil-DVR-fileImport [-h] --infile INFILE --outfile OUTFILE
+                               [--force]
+                               [--Category {series,movie,news,other}]
+                               [--ChannelAffiliate CHANNELAFFILIATE]
+                               [--ChannelImageURL CHANNELIMAGEURL]
+                               [--ChannelName CHANNELNAME]
+                               [--ChannelNumber CHANNELNUMBER]
+                               [--EndTime ENDTIME]
+                               [--EpisodeNumber EPISODENUMBER]
+                               [--EpisodeTitle EPISODETITLE] [--FirstAiring]
+                               [--no-FirstAiring] [--ImageURL IMAGEURL]
+                               [--OriginalAirdate ORIGINALAIRDATE]
+                               [--ProgramID PROGRAMID]
+                               [--RecordEndTime RECORDENDTIME]
+                               [--RecordStartTime RECORDSTARTTIME]
+                               [--RecordSuccess] [--no-RecordSuccess]
+                               [--SeriesID SERIESID] [--StartTime STARTTIME]
+                               [--Synopsis SYNOPSIS] [--Title TITLE]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --infile INFILE, --inputfile INFILE
+                        The file to import
+  --outfile OUTFILE, --outputfile OUTFILE
+                        The output file (input file with metadata added)
+  --force               Copy even if infile does not appear to be a transport
+                        stream
+  --Category {series,movie,news,other}
+                        The program category (one of series, movie, news,
+                        other)
+  --ChannelAffiliate CHANNELAFFILIATE
+                        The program channel affiliate
+  --ChannelImageURL CHANNELIMAGEURL
+                        The program channel image url
+  --ChannelName CHANNELNAME
+                        The program channel name
+  --ChannelNumber CHANNELNUMBER
+                        The program channel number
+  --EndTime ENDTIME     The program end time
+  --EpisodeNumber EPISODENUMBER
+                        The program episode number (SnnEnn)
+  --EpisodeTitle EPISODETITLE
+                        The program episode title
+  --FirstAiring         Mark the recording as a first airing
+  --no-FirstAiring      Mark the recording as not a first airing
+  --ImageURL IMAGEURL   The program image
+  --OriginalAirdate ORIGINALAIRDATE
+                        The program original air date
+  --ProgramID PROGRAMID
+                        The program id
+  --RecordEndTime RECORDENDTIME
+                        The program recording end time
+  --RecordStartTime RECORDSTARTTIME
+                        The program recording start time
+  --RecordSuccess       Mark the recording as successful
+  --no-RecordSuccess    Mark the recording as not successful
+  --SeriesID SERIESID   The program series id
+  --StartTime STARTTIME
+                        The program start time
+  --Synopsis SYNOPSIS   The program synopsis
+  --Title TITLE         The program title
+
+
+
+Scenerio:
+
+You want to import a file into the DVR
+
+    HDHRUtil-DVR-fileImport --infile FILE --outfile RECORD_ENGINE_DIR/Other/FILE.mpg --Title "My Title" --SeriesID "X" --ProgramID "X"
+
+    Note that Title, SeriesID, and ProgramID are required.  Ideally the
+    SeriesID and ProgramID will be the gracenote values.
