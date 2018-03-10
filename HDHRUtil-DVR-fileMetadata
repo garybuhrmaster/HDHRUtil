@@ -215,7 +215,7 @@ if __name__ == '__main__':
                         help='The program image')
     parser.add_argument('--OriginalAirdate', action='store', type=airdateCheck, dest='OriginalAirdate',
                         help='The program original air date')
-    parser.add_argument('--ProgramID', action='store', type=programIDCheck, dest='ProgramID',
+    parser.add_argument('--ProgramID', action='store', dest='ProgramID',
                         help='The program id')
     parser.add_argument('--RecordEndTime', action='store', type=datetimeCheck, dest='RecordEndTime',
                         help='The program recording end time')
