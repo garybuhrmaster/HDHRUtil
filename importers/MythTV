@@ -1,0 +1,235 @@
+#!/usr/bin/env python3
+
+import argparse
+import sys
+import os
+import json
+import shutil
+import subprocess
+import tempfile
+import atexit
+import requests
+import requests.auth
+
+class MythTVServices():
+    def __init__(self, host=None, port=None, username=None, password=None):
+        if host is None:
+            host = 'localhost'
+        self.host = host
+        if port is None:
+            port = 6544
+        self.port = port
+        self.session = requests.Session()
+        if username and password:
+            self.session.auth = requests.auth.HTTPDigestAuth(username, password)
+            self.request(service='Myth', api='version')
+
+    def request(self, service=None, api=None, data={}, method=None, stream=False):
+        version = '0.28'
+        headers = {'User-Agent':'{} Python Services API Client'.format(version),
+                   'Accept':'application/json',
+                   'Accept-Encoding':'gzip,deflate'}
+        if api is None:
+            raise ValueError('api must be specified')
+        url = 'http://{}:{}/{}/{}'.format(self.host, self.port, service, api)
+        if method is None:
+            if bool(data):
+                method = 'post'
+            else:
+                method = 'get'
+        if method == 'get':
+            response = self.session.get(url, headers=headers, params=data, stream=stream)
+        elif method == 'post':
+            response = self.session.post(url, headers=headers, data=data, stream=stream)
+        else:
+            raise ValueError('method is not post or get: {}'.format(method))
+        response.raise_for_status()
+        if stream:
+            response.raw.decode_content = True
+            return response.raw
+        else:
+            return response.json()
+
+    def Capture(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Capture', api=api, data=data, method=method, stream=stream)
+    def Channel(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Channel', api=api, data=data, method=method, stream=stream)
+    def Content(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Content', api=api, data=data, method=method, stream=stream)
+    def Dvr(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Dvr', api=api, data=data, method=method, stream=stream)
+    def Frontend(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Frontend', api=api, data=data, method=method, stream=stream)
+    def Guide(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Guide', api=api, data=data, method=method, stream=stream)
+    def Myth(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Myth', api=api, data=data, method=method, stream=stream)
+    def Video(self, api=None, data={}, method=None, stream=False):
+        return self.request(service='Video', api=api, data=data, method=method, stream=stream)
+
+def cleanTempFile(fn):
+    try:
+        os.remove(fn)
+    except OSError:
+        pass
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--backend', '--host', action='store', type=str, default='localhost.',
+                        help='the host (backend) to access.  The default is localhost.')
+    parser.add_argument('--port', action='store', type=int, default=6544,
+                        help='the port to connect to on on the host.  The default is 6544')
+    parser.add_argument('--username', action='store', type=str, default=None,
+                        help='the username to use for host authentication')
+    parser.add_argument('--password', action='store', type=str, default=None,
+                        help='the password to use for host authentication')
+    parser.add_argument('--destdir', action='store', type=str, default=os.path.curdir,
+                        help='Destination directory of imported files')
+    parser.add_argument('--TitleRegEx', action='store', type=str, default='.*',
+                        help='Title regex for selection')
+    parser.add_argument('--import-utility', action='store', type=str, dest='importutility',
+                        default='HDHRUtil-DVR-fileImport',
+                        help='HDHR DVR importer script (defaults to HDHRUtil-DVR-fileImport in $PATH)')
+    args = parser.parse_args()
+
+    s = MythTVServices(args.backend, args.port, args.username, args.password)
+
+    if not shutil.which(args.importutility):
+        print('Unable to locate import utility program')
+        sys.exit(1)
+
+    try:
+        hostname = s.Myth('GetHostName')['String']
+    except Exception:
+        print('Unable to obtain hostname from host {}:{}'.format(args.backend, args.port))
+        sys.exit(1)
+
+    # Get the list of recorded programs
+    recordedList = s.Dvr('GetRecordedList', {'TitleRegEx': args.TitleRegEx})['ProgramList']['Programs']
+
+    # Create outdir path (if needed)
+    if not os.path.exists(args.destdir):
+        try:
+            os.makedirs(args.destdir)
+        except (OSError, IOError) as e:
+            print('Unable to create parent directory for output file: ' + str(e))
+            sys.exit(1)
+
+    contentServicesHostname = None
+
+    for recorded in recordedList:
+        metadata = {}
+        if ('StartTime' not in recorded) or \
+           ('EndTime' not in recorded) or \
+           ('Channel' not in recorded) or \
+           ('ChanId' not in recorded['Channel']) or \
+           ('Recording' not in recorded) or \
+           ('StartTs' not in recorded['Recording']) or \
+           ('EndTs' not in recorded['Recording']) or \
+           ('RecordedId' not in recorded['Recording']):
+            print('Unable to process recorded entry, recording chanid or times not determinable. entry:{}'.format(recorded))
+            continue
+        # Title, ProgramID, SeriesID, and (sort of) Category are mandatory, so fill them in no matter
+        if 'Title' in recorded and recorded['Title']:
+            metadata['Title'] = recorded['Title']
+        else:
+            metadata['Title'] = 'UNKNOWN'
+        if 'ProgramId' in recorded and recorded['ProgramId']:
+            metadata['ProgramID'] = recorded['ProgramId']
+        else:
+            metadata['ProgramID'] = 'UNKNOWN'
+        if 'SeriesId' in recorded and recorded['SeriesId']:
+            metadata['SeriesID'] = recorded['SeriesId']
+        else:
+            metadata['SeriesID'] = 'UNKNOWN'
+        if 'CatType' in recorded and recorded['CatType']:
+            category = recorded['CatType']
+            if category == 'series':
+                metadata['Category'] = 'series'
+            elif category == 'movie':
+                metadata['Category'] = 'movie'
+            elif category == 'sports':
+                metadata['Category'] = 'sports'
+            elif category == 'tvshow':
+                metadata['Category'] = 'other'
+            else:
+                metadata['Category'] = 'other'
+        else:
+            metadata['Category'] = 'other'
+        if 'SubTitle' in recorded and recorded['SubTitle']:
+            metadata['EpisodeTitle'] = recorded['SubTitle']
+        if recorded['Description']:
+            metadata['Synopsis'] = recorded['Description']
+        if 'Airdate' in recorded and recorded['Airdate']:
+            metadata['OriginalAirdate'] = recorded['Airdate']
+        if 'Season' in recorded and recorded['Season'] and \
+           'Episode' in recorded and recorded['Episode'] and \
+           recorded['Season'].isdigit() and recorded['Episode'].isdigit() and \
+           int(recorded['Season']) > 0 and int(recorded['Episode']) > 0:
+            metadata['EpisodeNumber'] = 'S{0:02}E{1:02}'.format(int(recorded['Season']), int(recorded['Episode']))
+        if 'ChanNum' in recorded['Channel'] and recorded['Channel']['ChanNum']:
+            metadata['ChannelNumber'] = recorded['Channel']['ChanNum']
+        if 'CallSign' in recorded['Channel'] and recorded['Channel']['CallSign']:
+            metadata['ChannelName'] = recorded['Channel']['CallSign']
+        metadata['StartTime'] = recorded['StartTime']
+        metadata['EndTime'] = recorded['EndTime']
+        metadata['RecordStartTime'] = recorded['Recording']['StartTs']
+        metadata['RecordEndTime'] = recorded['Recording']['EndTs']
+
+        # Create output file name
+        filename = metadata['Title']
+        if metadata['Category'] == 'series' and 'EpisodeNumber' in metadata:
+            filename += ' ' + metadata['EpisodeNumber']
+        if 'OriginalAirdate' in metadata:
+            filename += ' ' + metadata['OriginalAirdate']
+        filename += ' ' + recorded['Channel']['ChanId'] + ' ' + metadata['StartTime'] + '.mpg'
+        if metadata['Category'] == 'series':
+            outfile = os.path.join(args.destdir, metadata['Title'], filename)
+        elif metadata['Category'] == 'movie':
+            outfile = os.path.join(args.destdir, 'Movies', filename)
+        elif metadata['Category'] == 'other':
+            outfile = os.path.join(args.destdir, 'Other', filename)
+        elif metadata['Category'] == 'sports':
+            outfile = os.path.join(args.destdir, 'Sports', filename)
+        else:
+            outfile = os.path.join(args.destdir, 'Other', filename)
+
+        # Get the actual transport stream file into a local tempfile
+        tmpfd, tmpfn = tempfile.mkstemp(dir=args.destdir)
+        os.close(tmpfd)
+        atexit.register(cleanTempFile, tmpfn)
+
+        # If we are not on the correct host, need to switch
+        if contentServicesHostname != recorded['HostName']:
+            contentServices = MythTVServices(hostname, args.port, args.username, args.password)
+            contentServicesHostname = recorded['HostName']
+
+        # Open the stream from the appropriate MythTV backend
+        mythstream = contentServices.Content('GetRecording', {'RecordedId': recorded['Recording']['RecordedId']}, method='get', stream=True)
+        # Copy the stream to the temp file (more or less) efficiently
+        with open(tmpfn, 'wb') as f:
+            shutil.copyfileobj(mythstream, f)
+
+        mythstream.close()
+
+        # Create importer args
+        importer_args = [args.importutility, '--infile', tmpfn, '--outfile', outfile]
+        for tag in metadata:
+            importer_args.append('--' + tag)
+            importer_args.append(metadata[tag])
+
+        # Perform the actual DVR import
+        subprocess.run(importer_args, check=True)
+
+        # Clean up this local tempfile
+        try:
+            os.remove(tmpfn)
+        except OSError:
+            pass
+        atexit.unregister(cleanTempFile)
+
+
+
+
+#       print(metadata['Title'], metadata['EpisodeTitle'], metadata['EpisodeNumber'])
