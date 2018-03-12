@@ -217,7 +217,7 @@ if __name__ == '__main__':
             sourceSpec = ''
             if args.source:
                 if args.source in sourceList:
-                    sourceSpec='&source={}'.format(args.source)
+                    sourceSpec = '&source={}'.format(args.source)
                 else:
                     print('Source specification {} is not valid'.format(args.source))
                     sys.exit(1)
