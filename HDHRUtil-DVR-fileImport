@@ -278,6 +278,10 @@ if __name__ == '__main__':
             print('Input file ' + args.infile + ' contains existing metadata')
             sys.exit(1)
 
+    # Small warning for outfile if not .mpg
+    if os.path.splitext(args.outfile)[1] != '.mpg':
+        print('WARNING: Outfile file extension needs to be .mpg for DVR engine')
+
     # Warn if metadata is not likely to be complete
     if (not args.ProgramID) or (not args.SeriesID) or (not args.Title):
         print('WARNING: ProgramID, SeriesID and Title required for record engine to recognize file')
