@@ -8,7 +8,7 @@ HDHRUtil-Tuner-channelSettingDuplicate is a utility for configuring the
 channel selection on SiliconDust HDHR devices by duplicating the
 list from one HDHR to another.
 
-Copyright (c) 2017 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+Copyright (c) 2018 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
