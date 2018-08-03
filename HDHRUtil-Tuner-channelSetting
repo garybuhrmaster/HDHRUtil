@@ -59,14 +59,19 @@ def HDHRdiscover():
 
     discoveredTuners = {}
 
+    SDdiscover = []
     try:
         r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
         r.raise_for_status()
         SDdiscover = r.json()
+        if not isinstance(SDdiscover, list):
+            SDdiscover = []
     except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
-        SDdiscover = {}
+        SDdiscover = []
 
     for device in SDdiscover:
+        if not isinstance(device, dict):
+            continue
         Legacy = False
         DeviceID = None
         DiscoverURL = None
@@ -109,10 +114,13 @@ def HDHRdiscover():
     eligibleTuners = []
 
     for device in discoveredTuners:
+        discoverResponse = {}
         try:
             r = requests.get(discoveredTuners[device], timeout=(.2, .2))
             r.raise_for_status()
             discoverResponse = r.json()
+            if not isinstance(discoverResponse, dict):
+                discoverResponse = {}
         except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
             discoverResponse = {}
 
