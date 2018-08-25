@@ -101,7 +101,7 @@ def cleanTempFile(fn):
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--backend', '--host', action='store', type=str, default='localhost.',
+    parser.add_argument('--backend', '--host', action='store', type=str, default='localhost',
                         help='the host (backend) to access.  The default is localhost.')
     parser.add_argument('--port', action='store', type=int, default=6544,
                         help='the port to connect to on on the host.  The default is 6544')
