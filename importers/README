@@ -7,3 +7,9 @@ Importers (contributions welcome for your favorite app)
                        be adjusted after import unless one
                        runs the import under the recording
                        engine userid.
+
+                       Note: Run the MythTV find_orphans.py
+                       script first to clean/validate your
+                       MythTV database.  Missing files
+                       will throw errors and terminate the
+                       import.
