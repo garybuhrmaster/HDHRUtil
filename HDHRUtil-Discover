@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+
+"""
+
+HDHRUtil-Discover
+
+HDHRUtil-Discover is a utility for reporting HDHR devices
+
+Copyright (c) 2018 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+This utility currently uses a reverse engineered
+interface to the HDHR, which, as it is not documented
+as a stable API, could change at any time.
+
+===== NOTE ===== NOTE ===== NOTE ===== NOTE ===== NOTE =====
+
+
+"""
+
+
+import sys
+import json
+import re
+import argparse
+import socket
+import requests
+import natsort
+
+
+def HDHRdiscover():
+
+    #
+    # Try a few different ways to identify eligible HDHRs
+    #
+    #
+    # First, obtain list from my.hdhomerun.com (SD provided service)
+    #
+    # Second, try to get a list of IP addresses that appear to
+    # be tuners (via a hand constructed packet (we just collect
+    # the IP addresses, and then perform a discovery)
+    #
+
+    discoveredTuners = {}
+
+    SDdiscover = []
+    try:
+        r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
+        r.raise_for_status()
+        SDdiscover = r.json()
+        if not isinstance(SDdiscover, list):
+            SDdiscover = []
+    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+        SDdiscover = []
+
+    for device in SDdiscover:
+        if not isinstance(device, dict):
+            continue
+        Legacy = False
+        DeviceID = None
+        DiscoverURL = None
+        LocalIP = None
+        if 'Legacy' in device:
+            Legacy = bool(device['Legacy'])
+        if 'DeviceID' in device:
+            DeviceID = device['DeviceID']
+        if 'DiscoverURL' in device:
+            DiscoverURL = device['DiscoverURL']
+        if 'LocalIP' in device:
+            LocalIP = device['LocalIP']
+
+        if (LocalIP is None):
+            continue
+
+        discoveredTuners[LocalIP] = DiscoverURL
+
+    discovery_udp_port = 65001
+    # Hand constructed discovery message (device type = tuner, device id = wildcard)
+    discovery_udp_msg = bytearray.fromhex('00 02 00 0c 01 04 00 00 00 01 02 04 ff ff ff ff 4e 50 7f 35')
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    sock.settimeout(.2)
+    for i in range(2):
+        sock.sendto(discovery_udp_msg, ('<broadcast>', discovery_udp_port))
+        while True:
+            try:
+                (buf, addr) = sock.recvfrom(2048)
+            except socket.timeout:
+                break
+            if addr is None:
+                continue
+            if buf is None:
+                continue
+
+            DiscoverURL = 'http://' + addr[0] + ':80/discover.json'
+            discoveredTuners[addr[0]] = DiscoverURL
+
+    eligibleTuners = []
+
+    for device in discoveredTuners:
+        discoverResponse = {}
+        try:
+            r = requests.get(discoveredTuners[device], timeout=(.2, .2))
+            r.raise_for_status()
+            discoverResponse = r.json()
+            if not isinstance(discoverResponse, dict):
+                discoverResponse = {}
+        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+            discoverResponse = {}
+
+        discoverResponse['LocalIP'] = device
+        eligibleTuners.append(discoverResponse)
+
+    return eligibleTuners
+
+
+if __name__ == '__main__':
+
+    # Parse our args
+    parser = argparse.ArgumentParser()
+    args = parser.parse_args()
+
+    # Discover HDHRs
+    discoveredHDHRs = HDHRdiscover()
+
+    for device in natsort.natsorted(discoveredHDHRs, key=lambda k: k['LocalIP']):
+
+       FriendlyName       = device.get('FriendlyName', None)
+       DeviceID           = device.get('DeviceID', None)
+       Legacy             = device.get('Legacy', False)
+       LocalIP            = device.get('LocalIP', None)
+       DeviceAuth         = device.get('DeviceAuth', None)
+       ModelNumber        = device.get('ModelNumber', None)
+       FirmwareName       = device.get('FirmwareName', None)
+       FirmwareVersion    = device.get('FirmwareVersion', None)
+       Version            = device.get('Version', None)
+       TunerCount         = device.get('TunerCount', None)
+       BaseURL            = device.get('BaseURL', None)
+       LineupURL          = device.get('LineupURL', None)
+       StorageID          = device.get('StorageID', None)
+       StorageURL         = device.get('StorageURL', None)
+       FreeSpace          = device.get('FreeSpace', None)
+
+       if FriendlyName is not None:
+           print('FriendlyName:      ', FriendlyName)
+       else:
+           print('FriendlyName:       Not_Available')
+       if DeviceID is not None:
+           print('  DeviceID:        ', DeviceID)
+       if (Legacy is not None) and (Legacy is not False):
+           print('  Legacy:          ', Legacy)
+       if LocalIP is not None:
+           print('  LocalIP:         ', LocalIP)
+       if ModelNumber is not None:
+           print('  ModelNumber:     ', ModelNumber)
+       if FirmwareName is not None:
+           print('  FirmwareName:    ', FirmwareName)
+       if FirmwareVersion is not None:
+           print('  FirmwareVersion: ', FirmwareVersion)
+       if Version is not None:
+           print('  Version:         ', Version)
+       if ModelNumber is not None:
+           print('  ModelNumber:     ', ModelNumber)
+       if TunerCount is not None:
+           print('  TunerCounter:    ', TunerCount)
+       if DeviceAuth is not None:
+           print('  DeviceAuth:      ', DeviceAuth)
+       if BaseURL is not None:
+           print('  BaseURL:         ', BaseURL)
+       if LineupURL is not None:
+           print('  LineupURL:       ', LineupURL)
+       if StorageID is not None:
+           print('  StorageID:       ', StorageID)
+       if StorageURL is not None:
+           print('  StorageURL:      ', StorageURL)
+       if FreeSpace is not None:
+           print('  FreeSpace:       ', FreeSpace)
+
+
+
+
+
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4

@@ -1,0 +1,16 @@
+HDHRUtil-Discover - Perform HDHR Discovery
+
+
+usage: HDHRUtil-Discover [-h]
+
+optional arguments:
+  -h, --help       show this help message and exit
+
+
+
+Scenerio:
+
+You want to discover any HDHR devices on your LAN
+
+    HDHRUtil-Discover
+
