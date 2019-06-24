@@ -36,14 +36,6 @@
             "type": "string",
             "format": "uri"
         },
-        "DisplayGroupID": {
-            "id": "/properties/DisplayGroupID",
-            "type": "string"
-        },
-        "DisplayGroupTitle": {
-            "id": "/properties/DisplayGroupTitle",
-            "type": "string"
-        },
         "EndTime": {
             "id": "/properties/EndTime",
             "description": "The end time (UTC epoch seconds) of the show",
