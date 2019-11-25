@@ -140,56 +140,56 @@ if __name__ == '__main__':
 
     for device in natsort.natsorted(discoveredHDHRs, key=lambda k: k['LocalIP']):
 
-       FriendlyName       = device.get('FriendlyName', None)
-       DeviceID           = device.get('DeviceID', None)
-       Legacy             = device.get('Legacy', False)
-       LocalIP            = device.get('LocalIP', None)
-       DeviceAuth         = device.get('DeviceAuth', None)
-       ModelNumber        = device.get('ModelNumber', None)
-       FirmwareName       = device.get('FirmwareName', None)
-       FirmwareVersion    = device.get('FirmwareVersion', None)
-       Version            = device.get('Version', None)
-       TunerCount         = device.get('TunerCount', None)
-       BaseURL            = device.get('BaseURL', None)
-       LineupURL          = device.get('LineupURL', None)
-       StorageID          = device.get('StorageID', None)
-       StorageURL         = device.get('StorageURL', None)
-       FreeSpace          = device.get('FreeSpace', None)
+        FriendlyName       = device.get('FriendlyName', None)
+        DeviceID           = device.get('DeviceID', None)
+        Legacy             = device.get('Legacy', False)
+        LocalIP            = device.get('LocalIP', None)
+        DeviceAuth         = device.get('DeviceAuth', None)
+        ModelNumber        = device.get('ModelNumber', None)
+        FirmwareName       = device.get('FirmwareName', None)
+        FirmwareVersion    = device.get('FirmwareVersion', None)
+        Version            = device.get('Version', None)
+        TunerCount         = device.get('TunerCount', None)
+        BaseURL            = device.get('BaseURL', None)
+        LineupURL          = device.get('LineupURL', None)
+        StorageID          = device.get('StorageID', None)
+        StorageURL         = device.get('StorageURL', None)
+        FreeSpace          = device.get('FreeSpace', None)
 
-       if FriendlyName is not None:
-           print('FriendlyName:      ', FriendlyName)
-       else:
-           print('FriendlyName:       Not_Available')
-       if DeviceID is not None:
-           print('  DeviceID:        ', DeviceID)
-       if (Legacy is not None) and (Legacy is not False):
-           print('  Legacy:          ', Legacy)
-       if LocalIP is not None:
-           print('  LocalIP:         ', LocalIP)
-       if ModelNumber is not None:
-           print('  ModelNumber:     ', ModelNumber)
-       if FirmwareName is not None:
-           print('  FirmwareName:    ', FirmwareName)
-       if FirmwareVersion is not None:
-           print('  FirmwareVersion: ', FirmwareVersion)
-       if Version is not None:
-           print('  Version:         ', Version)
-       if ModelNumber is not None:
-           print('  ModelNumber:     ', ModelNumber)
-       if TunerCount is not None:
-           print('  TunerCounter:    ', TunerCount)
-       if DeviceAuth is not None:
-           print('  DeviceAuth:      ', DeviceAuth)
-       if BaseURL is not None:
-           print('  BaseURL:         ', BaseURL)
-       if LineupURL is not None:
-           print('  LineupURL:       ', LineupURL)
-       if StorageID is not None:
-           print('  StorageID:       ', StorageID)
-       if StorageURL is not None:
-           print('  StorageURL:      ', StorageURL)
-       if FreeSpace is not None:
-           print('  FreeSpace:       ', FreeSpace)
+        if FriendlyName is not None:
+            print('FriendlyName:      ', FriendlyName)
+        else:
+            print('FriendlyName:       Not_Available')
+        if DeviceID is not None:
+            print('  DeviceID:        ', DeviceID)
+        if (Legacy is not None) and (Legacy is not False):
+            print('  Legacy:          ', Legacy)
+        if LocalIP is not None:
+            print('  LocalIP:         ', LocalIP)
+        if ModelNumber is not None:
+            print('  ModelNumber:     ', ModelNumber)
+        if FirmwareName is not None:
+            print('  FirmwareName:    ', FirmwareName)
+        if FirmwareVersion is not None:
+            print('  FirmwareVersion: ', FirmwareVersion)
+        if Version is not None:
+            print('  Version:         ', Version)
+        if ModelNumber is not None:
+            print('  ModelNumber:     ', ModelNumber)
+        if TunerCount is not None:
+            print('  TunerCounter:    ', TunerCount)
+        if DeviceAuth is not None:
+            print('  DeviceAuth:      ', DeviceAuth)
+        if BaseURL is not None:
+            print('  BaseURL:         ', BaseURL)
+        if LineupURL is not None:
+            print('  LineupURL:       ', LineupURL)
+        if StorageID is not None:
+            print('  StorageID:       ', StorageID)
+        if StorageURL is not None:
+            print('  StorageURL:      ', StorageURL)
+        if FreeSpace is not None:
+            print('  FreeSpace:       ', FreeSpace)
 
 
 
