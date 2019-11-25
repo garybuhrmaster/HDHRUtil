@@ -167,7 +167,7 @@ if __name__ == '__main__':
 
     HDHRip = None
 
-    if re.match('^[0-9A-Z]{8}$', args.hdhr.upper()):    # deviceid?
+    if re.match(r'^[0-9A-Z]{8}$', args.hdhr.upper()):   # deviceid?
         for d in discoveredHDHRs:
             if d['DeviceID'] == args.hdhr.upper():
                 HDHRip = d['LocalIP']

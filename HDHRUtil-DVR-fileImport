@@ -50,7 +50,7 @@ import dateutil.tz
 
 
 def episodeNumNormalize(episodeNum):
-    m0 = re.match('^S(\d+)E(\d+)$', episodeNum, re.IGNORECASE)
+    m0 = re.match(r'^S(\d+)E(\d+)$', episodeNum, re.IGNORECASE)
     if m0:
         return 'S{0:02}E{1:02}'.format(int(m0.group(1)), int(m0.group(2)))
     else:
@@ -63,14 +63,14 @@ def episodeNumCheck(episodeNum):
         raise argparse.ArgumentTypeError('{} is not a valid episode number (SnnEnn)'.format(episodeNum))
 
 def programIDCheck(programID):
-    if (len(programID) == 14) and (programID[0:2] in ['EP', 'MV', 'SH', 'SP']) and (re.match('^[0-9]+$', programID[2:])):
+    if (len(programID) == 14) and (programID[0:2] in ['EP', 'MV', 'SH', 'SP']) and (re.match(r'^[0-9]+$', programID[2:])):
         return programID
     else:
         raise argparse.ArgumentTypeError('{} is not a valid ProgramID (14 characters, starts with EP, MV, SH, SP'.format(programID))
 
 def datetimeCheck(dt):
     # Accept a epoch integer (presume the person knows for what they offer)
-    if re.match('^(\d+)$', dt):
+    if re.match(r'^(\d+)$', dt):
         return int(dt)
     try:
         d = dateutil.parser.parse(dt)
@@ -82,7 +82,7 @@ def datetimeCheck(dt):
 
 def airdateCheck(dt):
     # Accept a epoch integer (presume the person knows for what they offer)
-    if re.match('^(\d+)$', dt):
+    if re.match(r'^(\d+)$', dt):
         return int(dt)
     try:
         d = dateutil.parser.parse(dt)
@@ -96,10 +96,10 @@ def airdateCheck(dt):
 
 
 def channelNormalize(channel):
-    m0 = re.match('^(\d+)$', channel)
-    m1 = re.match('^(\d+)\.(\d+)$', channel)
-    m2 = re.match('^(\d+)_(\d+)$', channel)
-    m3 = re.match('^(\d+)-(\d+)$', channel)
+    m0 = re.match(r'^(\d+)$', channel)
+    m1 = re.match(r'^(\d+)\.(\d+)$', channel)
+    m2 = re.match(r'^(\d+)_(\d+)$', channel)
+    m3 = re.match(r'^(\d+)-(\d+)$', channel)
     if m0:
         return '{}'.format(int(m0.group(1)))
     elif m1:

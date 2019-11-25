@@ -143,10 +143,10 @@ def HDHRdiscover():
     return eligibleTuners
 
 def channelNormalize(channel):
-    m0 = re.match('^(\d+)$', channel)
-    m1 = re.match('^(\d+)\.(\d+)$', channel)
-    m2 = re.match('^(\d+)_(\d+)$', channel)
-    m3 = re.match('^(\d+)-(\d+)$', channel)
+    m0 = re.match(r'^(\d+)$', channel)
+    m1 = re.match(r'^(\d+)\.(\d+)$', channel)
+    m2 = re.match(r'^(\d+)_(\d+)$', channel)
+    m3 = re.match(r'^(\d+)-(\d+)$', channel)
     if m0:
         return '{0}'.format(int(m0.group(1)))
     elif m1:
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
     HDHRip = None
 
-    if re.match('^[0-9A-Z]{8}$', args.hdhr.upper()):    # deviceid?
+    if re.match(r'^[0-9A-Z]{8}$', args.hdhr.upper()):   # deviceid?
         for d in discoveredHDHRs:
             if d['DeviceID'] == args.hdhr.upper():
                 HDHRip = d['LocalIP']
