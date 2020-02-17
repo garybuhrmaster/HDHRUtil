@@ -50,7 +50,7 @@ def HDHRdiscover():
     # Try a few different ways to identify eligible HDHRs
     #
     #
-    # First, obtain list from my.hdhomerun.com (SD provided service)
+    # First, obtain list from api.hdhomerun.com (SD provided service)
     #
     # Second, try to get a list of IP addresses that appear to
     # be tuners (via a hand constructed packet (we just collect
@@ -61,7 +61,7 @@ def HDHRdiscover():
 
     SDdiscover = []
     try:
-        r = requests.get('https://my.hdhomerun.com/discover', timeout=(.5, .2))
+        r = requests.get('https://api.hdhomerun.com/discover', timeout=(.5, .2))
         r.raise_for_status()
         SDdiscover = r.json()
         if not isinstance(SDdiscover, list):
