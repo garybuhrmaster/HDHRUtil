@@ -137,7 +137,7 @@ def transportStreamToMetadata(ts):
     if len(metadata) <= 0:
         raise ValueError('transport stream does not contain any metadata')
     try:
-        return json.loads(metadata, encoding='utf-8')
+        return json.loads(metadata)
     except:
         raise ValueError('transport stream metadata is not decodable as json')
 
