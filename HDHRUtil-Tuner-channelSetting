@@ -50,7 +50,8 @@ def HDHRdiscover():
     # Try a few different ways to identify eligible HDHRs
     #
     #
-    # First, obtain list from api.hdhomerun.com (SD provided service)
+    # First, if --use-cloud-discovery is specified, try to obtain
+    # the list from api.hdhomerun.com (SD provided service)
     #
     # Second, try to get a list of IP addresses that appear to
     # be tuners (via a hand constructed packet (we just collect
@@ -59,28 +60,29 @@ def HDHRdiscover():
 
     discoveredTuners = {}
 
-    SDdiscover = []
-    try:
-        r = requests.get('https://api.hdhomerun.com/discover', timeout=(.5, .2))
-        r.raise_for_status()
-        SDdiscover = r.json()
-        if not isinstance(SDdiscover, list):
-            SDdiscover = []
-    except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+    if args.usecloud:
         SDdiscover = []
+        try:
+            r = requests.get('https://api.hdhomerun.com/discover', timeout=(4, 1))
+            r.raise_for_status()
+            SDdiscover = r.json()
+            if not isinstance(SDdiscover, list):
+                SDdiscover = []
+        except (requests.exceptions.RequestException, json.decoder.JSONDecodeError):
+            SDdiscover = []
 
-    for device in SDdiscover:
-        if not isinstance(device, dict):
-            continue
-        Legacy = bool(device.get('Legacy', False))
-        DeviceID = device.get('DeviceID', None)
-        DiscoverURL = device.get('DiscoverURL', None)
-        LocalIP = device.get('LocalIP', None)
+        for device in SDdiscover:
+            if not isinstance(device, dict):
+                continue
+            Legacy = bool(device.get('Legacy', False))
+            DeviceID = device.get('DeviceID', None)
+            DiscoverURL = device.get('DiscoverURL', None)
+            LocalIP = device.get('LocalIP', None)
 
-        if (Legacy) or (LocalIP is None) or (DeviceID is None) or (DiscoverURL is None):
-            continue
+            if (Legacy) or (LocalIP is None) or (DeviceID is None) or (DiscoverURL is None):
+                continue
 
-        discoveredTuners[LocalIP] = DiscoverURL
+            discoveredTuners[LocalIP] = DiscoverURL
 
     discovery_udp_port = 65001
     # Hand constructed discovery message (device type = tuner, device id = wildcard)
@@ -108,7 +110,7 @@ def HDHRdiscover():
     for device in discoveredTuners:
         discoverResponse = {}
         try:
-            r = requests.get(discoveredTuners[device], timeout=(.2, .2))
+            r = requests.get(discoveredTuners[device], timeout=(4, 1))
             r.raise_for_status()
             discoverResponse = r.json()
             if not isinstance(discoverResponse, dict):
@@ -169,7 +171,8 @@ if __name__ == '__main__':
                         help='channel setting (enabled, disabled, favorite).  The default is just to report the status.')
     parser.add_argument('--dry-run', action='store_true', dest='dryrun', default=False,
                         help='dry run only (do not update)')
-
+    parser.add_argument('--use-cloud-discovery', action='store_true', default=False, dest='usecloud',
+                        help='use the SiliconDust Cloud API services to discover local tuners')
     args = parser.parse_args()
 
     # Discover HDHRs
