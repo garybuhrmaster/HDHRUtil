@@ -71,20 +71,12 @@ def HDHRdiscover():
     for device in SDdiscover:
         if not isinstance(device, dict):
             continue
-        Legacy = False
-        DeviceID = None
-        DiscoverURL = None
-        LocalIP = None
-        if 'Legacy' in device:
-            Legacy = bool(device['Legacy'])
-        if 'DeviceID' in device:
-            DeviceID = device['DeviceID']
-        if 'DiscoverURL' in device:
-            DiscoverURL = device['DiscoverURL']
-        if 'LocalIP' in device:
-            LocalIP = device['LocalIP']
+        Legacy = bool(device.get('Legacy', False))
+        DeviceID = device.get('DeviceID', None)
+        DiscoverURL = device.get('DiscoverURL', None)
+        LocalIP = device.get('LocalIP', None)
 
-        if (LocalIP is None):
+        if (LocalIP is None) or (DeviceID is None) or (DiscoverURL is None):
             continue
 
         discoveredTuners[LocalIP] = DiscoverURL
@@ -142,7 +134,7 @@ if __name__ == '__main__':
 
         FriendlyName       = device.get('FriendlyName', None)
         DeviceID           = device.get('DeviceID', None)
-        Legacy             = device.get('Legacy', False)
+        Legacy             = bool(device.get('Legacy', False))
         LocalIP            = device.get('LocalIP', None)
         DeviceAuth         = device.get('DeviceAuth', None)
         ModelNumber        = device.get('ModelNumber', None)
