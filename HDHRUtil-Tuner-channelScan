@@ -230,7 +230,7 @@ if __name__ == '__main__':
                     print('Source specification {} is not valid'.format(args.source))
                     sys.exit(1)
             try:
-                start = requests.get('http://{}/lineup.post?scan=start'.format(HDHRip) + sourceSpec)
+                start = requests.post('http://{}/lineup.post?scan=start'.format(HDHRip) + sourceSpec)
             except requests.exceptions.RequestException:
                 print('Unable to start scan')
                 sys.exit(1)
@@ -240,7 +240,7 @@ if __name__ == '__main__':
             print('Scan not in progress on {}'.format(HDHRip))
         else:
             try:
-                start = requests.get('http://{}/lineup.post?scan=abort'.format(HDHRip))
+                start = requests.post('http://{}/lineup.post?scan=abort'.format(HDHRip))
             except requests.exceptions.RequestException:
                 print('Unable to abort scan')
                 sys.exit(1)
