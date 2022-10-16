@@ -1,16 +1,17 @@
 HDHRUtil-Tuner-channelScan - Report status, or start or stop a channel scan
 
 
-usage: HDHRUtil-Tuner-channelScan [-h] --hdhr HDHR [--status | --start | --stop]
-                                  [--source SOURCE]
+usage: HDHRUtil-Tuner-channelScan [-h] --hdhr HDHR [--status | --start | --stop] [--source SOURCE] [--use-cloud-discovery]
 
-optional arguments:
-  -h, --help       show this help message and exit
-  --hdhr HDHR      the HDHomeRun to manage
-  --status         status of the channel scan (default action)
-  --start          start a channel scan
-  --stop, --abort  stop a channel scan
-  --source SOURCE  specify a source type
+options:
+  -h, --help            show this help message and exit
+  --hdhr HDHR           the HDHomeRun to manage
+  --status              status of the channel scan (default action)
+  --start               start a channel scan
+  --stop, --abort       stop a channel scan
+  --source SOURCE       specify a source type
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
 
 
 

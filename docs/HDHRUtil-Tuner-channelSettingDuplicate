@@ -1,13 +1,12 @@
 HDHRUtil-Tuner-channelSettingDuplicate - Copy the channel status from one HDHR to another
 
 
-usage: HDHRUtil-Tuner-channelSettingDuplicate [-h] --source-hdhr SRCHDHR
-                                              --destination-hdhr DSTHDHR
+usage: HDHRUtil-Tuner-channelSettingDuplicate [-h] --source-hdhr SRCHDHR --destination-hdhr DSTHDHR
                                               [--channel CHANNELINCLUDE [CHANNELINCLUDE ...]]
-                                              [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]]
-                                              [--dry-run] [--quiet]
+                                              [--exclude-channel CHANNELEXCLUDE [CHANNELEXCLUDE ...]] [--dry-run] [--quiet]
+                                              [--use-cloud-discovery]
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   --source-hdhr SRCHDHR, --src-hdhr SRCHDHR, --srchdhr SRCHDHR
                         the source HDHomeRun for channel settings
@@ -19,12 +18,14 @@ optional arguments:
                         list of channels to exclude. The default is none
   --dry-run             dry run only (do not update)
   --quiet               do not display output
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
 
 
 
 Scenario:
 
-You want two duplicate the channel settings from HDHR1 to HDHR2
+You want to duplicate the channel settings from HDHR1 to HDHR2
 
    HDHRUtil-Tuner-channelSettingDuplicate --source-hdhr=hdhr1.local --destination-hdhr=hdhr2.local
 

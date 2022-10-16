@@ -1,10 +1,12 @@
 HDHRUtil-Discover - Perform HDHR Discovery
 
 
-usage: HDHRUtil-Discover [-h]
+usage: HDHRUtil-Discover [-h] [--use-cloud-discovery]
 
-optional arguments:
-  -h, --help       show this help message and exit
+options:
+  -h, --help            show this help message and exit
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
 
 
 
