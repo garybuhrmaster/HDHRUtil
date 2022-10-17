@@ -1,0 +1,44 @@
+HDHRUtil-Tuner-waitOnline - Wait for a HDHR device to come online
+
+
+usage: HDHRUtil-Tuner-waitOnline [-h] --hdhr HDHR [--use-cloud-discovery] [--timeout TIMEOUT]
+
+options:
+  -h, --help            show this help message and exit
+  --hdhr HDHR           the HDHomeRun to wait for
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
+  --timeout TIMEOUT     timeout for waiting
+
+
+
+Possible usage:
+
+Create a systemd unit file (user or system as appropriate)
+named something like hdhr-wait-online@.service with something
+like the following contents
+
+----
+
+[Unit]
+Description=Wait for HDHR (instance: %i)
+After=network-online.target
+
+[Service]
+Type=simple
+Nice=19
+DynamicUser=true
+ExecStart=/usr/libexec/HDHRUtil-Tuner-waitOnline --hdhr %i
+
+----
+
+and then systemctl enable hdhr-wait-online@[deviceid].service
+(one for all relevant devices), and then add a (or multiple)
+"After" to your application that requires the hdhr to be online.
+
+
+
+Possible usage:
+
+Add in a ExecStartPre for the service (making sure to use
+the - character to allow failure).
