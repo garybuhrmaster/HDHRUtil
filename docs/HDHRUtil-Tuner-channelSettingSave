@@ -1,0 +1,21 @@
+HDHRUtil-Tuner-channelSettingSave - Save the channel status to a file
+
+
+usage: HDHRUtil-Tuner-channelSettingSave [-h] --hdhr HDHR [--outfile OUTFILE] [--use-cloud-discovery]
+
+options:
+  -h, --help            show this help message and exit
+  --hdhr HDHR           the HDHomeRun to manage
+  --outfile OUTFILE, --output-file OUTFILE
+                        the file to store the settings
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
+
+
+
+Scenario:
+
+You want to save the channel settings from HDHR to a file
+
+   HDHRUtil-Tuner-channelSettingSave --hdhr=hdhr1.local --outfile hdhr1.settings
+

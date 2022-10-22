@@ -1,0 +1,21 @@
+HDHRUtil-Tuner-channelSettingRestore - Restore the channel status from a file
+
+
+usage: HDHRUtil-Tuner-channelSettingRestore [-h] --hdhr HDHR [--infile INFILE] [--use-cloud-discovery]
+
+options:
+  -h, --help            show this help message and exit
+  --hdhr HDHR           the HDHomeRun to manage
+  --infile INFILE, --input-file INFILE
+                        the file from which to restore the HDHR settings
+  --use-cloud-discovery
+                        use the SiliconDust Cloud API services to discover local tuners
+
+
+
+Scenario:
+
+You want to restore the channel settings to a HDHR
+
+   HDHRUtil-Tuner-channelSettingSave --hdhr=hdhr1.local --infile hdhr1.settings
+
