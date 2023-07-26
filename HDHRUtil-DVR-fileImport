@@ -221,6 +221,8 @@ if __name__ == '__main__':
                         help='Mark the recording as successful')
     parser.add_argument('--no-RecordSuccess', action='store_const', const=0, dest='RecordSuccess',
                         help='Mark the recording as not successful')
+    parser.add_argument('--Resume', action='store', dest='Resume', type=int,
+                        help='The program resume point')
     parser.add_argument('--SeriesID', action='store', dest='SeriesID',
                         help='The program series id')
     parser.add_argument('--StartTime', action='store', type=datetimeCheck, dest='StartTime',
@@ -237,7 +239,7 @@ if __name__ == '__main__':
     for m in ['Category', 'ChannelAffiliate', 'ChannelImageURL', 'ChannelName', 'ChannelNumber',
               'EndTime', 'EpisodeNumber', 'EpisodeTitle', 'FirstAiring', 'ImageURL',
               'OriginalAirdate', 'ProgramID', 'RecordEndTime', 'RecordStartTime', 'RecordSuccess',
-              'SeriesID', 'StartTime', 'Synopsis', 'Title']:
+              'Resume', 'SeriesID', 'StartTime', 'Synopsis', 'Title']:
         value = vars(args)[m]
         if value is not None:
             metadata[m] = value

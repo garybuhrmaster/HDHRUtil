@@ -48,6 +48,7 @@
         },
         "EpisodeTitle": {
             "id": "/properties/EpisodeTitle",
+            "description": "The show title",
             "type": "string"
         },
         "FirstAiring": {
@@ -74,6 +75,7 @@
         },
         "ProgramID": {
             "id": "/properties/ProgramID",
+            "description": "The internal programid",
             "type": "string"
         },
         "RecordEndTime": {
@@ -96,6 +98,7 @@
         },
         "SeriesID": {
             "id": "/properties/SeriesID",
+            "description": "The internal seriesid",
             "type": "string"
         },
         "StartTime": {
@@ -106,12 +109,18 @@
         },
         "Synopsis": {
             "id": "/properties/Synopsis",
+            "description": "The show synopsis",
             "type": "string"
         },
         "Title": {
             "id": "/properties/Title",
             "description": "The title of the show",
             "type": "string"
+        }
+        "Resume": {
+            "id": "/properties/Resume",
+            "description": "The offset to resume a program playback in seconds"
+            "type": "integer"
         }
     }
 }
