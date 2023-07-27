@@ -122,7 +122,7 @@
             "type": "string"
         },
         "Team2": {
-            "id": "/properties/Team1",
+            "id": "/properties/Team2",
             "description": "The second team playing",
             "type": "string"
         },
