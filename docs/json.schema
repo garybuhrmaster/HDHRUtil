@@ -116,10 +116,10 @@
             "id": "/properties/Title",
             "description": "The title of the show",
             "type": "string"
-        }
+        },
         "Resume": {
             "id": "/properties/Resume",
-            "description": "The offset to resume a program playback in seconds"
+            "description": "The offset to resume a program playback in seconds",
             "type": "integer"
         }
     }
