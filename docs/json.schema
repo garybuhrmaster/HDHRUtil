@@ -8,7 +8,7 @@
             "id": "/properties/Category",
             "description": "The category of the show",
             "type": "string",
-            "enum": ["series", "movie", "live", "news", "other"]
+            "enum": ["series", "movie", "live", "news", "sports", "special", "other"]
         },
         "ChannelAffiliate": {
             "id": "/properties/ChannelAffiliate",
@@ -44,21 +44,24 @@
         },
         "EpisodeNumber": {
             "id": "/properties/EpisodeNumber",
+            "description": "The episode number in SnnEnn format",
             "type": "string"
         },
         "EpisodeTitle": {
             "id": "/properties/EpisodeTitle",
-            "description": "The show title",
+            "description": "The show episode title",
             "type": "string"
         },
         "FirstAiring": {
             "id": "/properties/FirstAiring",
+            "description": "The indicator that this is a first airing of the show",
             "type": "integer",
             "minimum": 0,
             "maximum": 1
         },
         "ImageURL": {
             "id": "/properties/ImageURL",
+            "description": "The show image URL",
             "type": "string",
             "format": "uri"
         },
@@ -92,6 +95,7 @@
         },
         "RecordSuccess": {
             "id": "/properties/RecordSuccess",
+            "description": "The indicator that the recording was successfull",
             "type": "integer",
             "minimum": 0,
             "maximum": 1
@@ -110,6 +114,16 @@
         "Synopsis": {
             "id": "/properties/Synopsis",
             "description": "The show synopsis",
+            "type": "string"
+        },
+        "Team1": {
+            "id": "/properties/Team1",
+            "description": "The first team playing",
+            "type": "string"
+        },
+        "Team2": {
+            "id": "/properties/Team1",
+            "description": "The second team playing",
             "type": "string"
         },
         "Title": {
