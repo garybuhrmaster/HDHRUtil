@@ -191,8 +191,8 @@ if __name__ == '__main__':
                                       'Synopsis', 'Title'],
                              help='Delete the specified keys in the file metadata')
     parser.add_argument('--Category', action='store', dest='Category',
-                        choices=['series', 'movie', 'news', 'other'],
-                        help='The program category (one of series, movie, news, other)')
+                        choices=['series', 'movie', 'news', 'sports', 'special', 'other'],
+                        help='The program category (one of series, movie, news, sports, special, or other)')
     parser.add_argument('--ChannelAffiliate', action='store', dest='ChannelAffiliate',
                         help='The program channel affiliate')
     parser.add_argument('--ChannelImageURL', action='store', dest='ChannelImageURL',
