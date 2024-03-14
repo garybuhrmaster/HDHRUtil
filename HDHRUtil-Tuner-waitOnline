@@ -7,10 +7,12 @@ HDHRUtil-Tuner-waitOnline
 HDHRUtil-Tuner-waitOnline is a utility to wait for
 a HDHR tuner to come online.  While typically it
 is expected that its usage will be in a systemd
-unit (either view a ExecPre or a oneshot with a
-After), there may be other uses.
+unit (either via an ExecPre= in a server.service
+which needs the tuner(s) or a oneshot with an After=
+in the server.service file.  There may be other
+uses.
 
-Copyright (c) 2022 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
+Copyright (c) 2024 by Gary Buhrmaster <gary.buhrmaster@gmail.com>
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
